@@ -25,7 +25,8 @@ import {
   FileText,
   Trash2,
   File as FileIcon,
-  Plus
+  Plus,
+  UploadCloud
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PROJECT_CONFIG } from './core/config';
@@ -38,6 +39,7 @@ import { translations, Language } from './lib/i18n';
 interface AgentConfig {
   selectedProvider: string;
   selectedModel: string;
+  customModel?: string;
 }
 
 interface ProviderConfig {
@@ -135,6 +137,12 @@ const AI_PROVIDERS = [
       { id: 'mistral', name: 'Mistral' },
       { id: 'qwen2.5', name: 'Qwen 2.5' }
     ]
+  },
+  {
+    id: 'custom',
+    name: 'Custom (自定义/兼容接口)',
+    defaultEndpoint: 'https://api.example.com/v1',
+    models: []
   }
 ];
 
@@ -192,6 +200,8 @@ export default function App() {
   const [initFeedback, setInitFeedback] = useState("");
   const [inputMessage, setInputMessage] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<{ name: string, size: number, type: string }[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
   const [activeAgent, setActiveAgent] = useState<'master' | 'creative' | 'design' | 'dev' | 'reflect'>('master');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [messageHistories, setMessageHistories] = useState<Record<string, { id: string, role: 'user' | 'agent' | 'system', content: string, timestamp: string }[]>>({
@@ -359,15 +369,61 @@ export default function App() {
     }, 1500);
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files) as File[];
-      const newFiles = files.map(file => ({
-        name: file.name,
-        size: file.size,
-        type: file.type
-      }));
-      setUploadedFiles(prev => [...prev, ...newFiles]);
+  const processFiles = (fileList: FileList | File[] | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
+    const newFiles = files.map(file => ({
+      name: file.name,
+      size: file.size,
+      type: file.type || 'unknown/file'
+    }));
+    setUploadedFiles(prev => {
+      const existingNames = new Set(prev.map(f => f.name));
+      const filtered = newFiles.filter(f => !existingNames.has(f.name));
+      return [...prev, ...filtered];
+    });
+  };
+
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      if (e.clipboardData && e.clipboardData.files.length > 0) {
+        processFiles(e.clipboardData.files);
+      }
+    };
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, []);
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current += 1;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current -= 1;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current = 0;
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(e.dataTransfer.files);
     }
   };
 
@@ -445,14 +501,24 @@ Please process this based on your specialty. Output a concise response.
         if (!dynamicProviderConfig?.apiEndpoint) {
            throw new Error(`API Endpoint not configured for the selected provider: ${dynamicAgentConfig.selectedProvider}`);
         }
-        const response = await fetch(`${dynamicProviderConfig.apiEndpoint.replace(/\/$/, '')}/chat/completions`, {
+        
+        let endpointUrl = dynamicProviderConfig.apiEndpoint.trim();
+        if (!endpointUrl.endsWith('/chat/completions')) {
+           endpointUrl = endpointUrl.replace(/\/$/, '') + '/chat/completions';
+        }
+        
+        const resolvedModel = dynamicAgentConfig.selectedModel === 'custom' 
+          ? (dynamicAgentConfig.customModel || "gpt-4o") 
+          : (dynamicAgentConfig.selectedModel || "gpt-4o");
+
+        const response = await fetch(endpointUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${dynamicProviderConfig.apiKey || ''}`
           },
           body: JSON.stringify({
-            model: dynamicAgentConfig.selectedModel || "gpt-4o",
+            model: resolvedModel,
             messages: [
               { role: "system", content: systemInstruction },
               { role: "user", content: finalPrompt }
@@ -550,31 +616,50 @@ Please process this based on your specialty. Output a concise response.
     setTestConnectionState({ status: 'testing', message: 'Testing connection...' });
     try {
       const config = currentProviderConfig;
-      const response = await fetch(`${config.apiEndpoint.replace(/\/$/, '')}/chat/completions`, {
+      const resolvedModel = activeAgentConfig.selectedModel === 'custom' 
+        ? (activeAgentConfig.customModel || "gpt-4o") 
+        : activeAgentConfig.selectedModel;
+        
+      let endpointUrl = config.apiEndpoint.trim();
+      if (!endpointUrl.endsWith('/chat/completions')) {
+         endpointUrl = endpointUrl.replace(/\/$/, '') + '/chat/completions';
+      }
+
+      const response = await fetch(endpointUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${config.apiKey || ''}`
         },
         body: JSON.stringify({
-          model: activeAgentConfig.selectedModel,
+          model: resolvedModel,
           messages: [{ role: "user", content: "print('hello')" }],
           max_tokens: 10
         })
       });
 
       if (!response.ok) {
-        const errMsg = await response.text();
-        setTestConnectionState({ status: 'error', message: `HTTP ${response.status}: ${errMsg}` });
+        let errMsg = await response.text();
+        try {
+          const errJson = JSON.parse(errMsg);
+          errMsg = errJson.error?.message || errJson.message || errMsg;
+        } catch { /* ignore parsing errors */ }
+        setTestConnectionState({ status: 'error', message: `HTTP ${response.status}: ${errMsg}`.substring(0, 150) });
       } else {
         const data = await response.json();
-        setTestConnectionState({ 
-          status: 'success', 
-          message: data.choices?.[0]?.message?.content ? 'Connection successful!' : 'Connection OK, but invalid response format.' 
-        });
+        if (data.choices?.[0]?.message?.content) {
+          setTestConnectionState({ 
+            status: 'success', 
+            message: `OK! Reply: "${data.choices[0].message.content.substring(0, 40)}"` 
+          });
+        } else if (data.error) {
+          setTestConnectionState({ status: 'error', message: `API Error: ${data.error.message || 'Unknown provider error'}` });
+        } else {
+          setTestConnectionState({ status: 'error', message: 'Connected, but invalid response format.' });
+        }
       }
     } catch (e: any) {
-      setTestConnectionState({ status: 'error', message: e.message || 'Network error' });
+      setTestConnectionState({ status: 'error', message: `Network/CORS Error: ${e.message}` });
     }
   };
 
@@ -590,7 +675,33 @@ Please process this based on your specialty. Output a concise response.
   }
 
   return (
-    <div className="flex h-screen bg-[#0a0a0a] text-zinc-300 font-sans overflow-hidden" id="app-workbench">
+    <div 
+      className="flex h-screen bg-[#0a0a0a] text-zinc-300 font-sans overflow-hidden relative" 
+      id="app-workbench"
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <AnimatePresence>
+        {isDragging && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-[100] bg-emerald-500/10 border-2 border-dashed border-emerald-500/50 backdrop-blur-sm flex items-center justify-center pointer-events-none"
+          >
+            <div className="flex flex-col items-center gap-4 bg-zinc-950 p-8 rounded-2xl shadow-2xl border border-zinc-800">
+              <UploadCloud className="w-12 h-12 text-emerald-500 animate-bounce" />
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-white tracking-widest uppercase pb-1">Drop files to upload</h3>
+                <p className="text-xs text-zinc-500 font-mono">Supports any documents or images</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* --- Settings Modal --- */}
       <AnimatePresence>
         {showSettings && (
@@ -746,7 +857,32 @@ Please process this based on your specialty. Output a concise response.
                           {currentProviderData.models.map(m => (
                             <option key={m.id} value={m.id}>{m.name}</option>
                           ))}
+                          <option value="custom">✏️ {settings.lang === 'zh' ? '自定义 (Custom)' : 'Custom Model'}</option>
                         </select>
+
+                        <AnimatePresence>
+                          {activeAgentConfig.selectedModel === 'custom' && (
+                            <motion.input
+                              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                              animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                              type="text"
+                              value={activeAgentConfig.customModel || ''}
+                              onChange={(e) => setSettings(s => ({
+                                ...s,
+                                agentConfigs: {
+                                  ...s.agentConfigs,
+                                  [settingsActiveAgent]: {
+                                    ...s.agentConfigs[settingsActiveAgent],
+                                    customModel: e.target.value
+                                  }
+                                }
+                              }))}
+                              placeholder={settings.lang === 'zh' ? "输入模型名称 (如: gpt-4.5)" : "Enter model string"}
+                              className="w-full bg-zinc-900 border border-emerald-500/50 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors"
+                            />
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
 
@@ -1160,7 +1296,7 @@ Please process this based on your specialty. Output a concise response.
                       multiple 
                       className="hidden" 
                       disabled={!canExecute}
-                      onChange={handleFileChange}
+                      onChange={(e) => processFiles(e.target.files)}
                       accept=".md,.json,.pdf,.txt,.png"
                     />
                   </label>
