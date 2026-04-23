@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- Validation Blueprints ---
+    
+    function isValidExperience(data) {
+      return data.keys().hasAll(['type', 'content', 'hits', 'createdAt', 'createdBy'])
+        && data.keys().size() <= 7 // Allow tags and id
+        && data.type in ['Pattern', 'Fix_Trace', 'Preference', 'Negative']
+        && data.content is string && data.content.size() <= 10000
+        && data.hits is int && data.hits >= 0
+        && data.createdAt == request.time
+        && data.createdBy == request.auth.uid;
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['name', 'ownerId', 'status', 'createdAt'])
+        && data.keys().size() <= 6 // Allow id and lastState
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 256
+        && data.ownerId == request.auth.uid
+        && data.status in ['active', 'completed', 'archived']
+        && data.createdAt == request.time;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['userId', 'email'])
+        && data.keys().size() <= 3 // Allow displayName
+        && data.userId == request.auth.uid
+        && data.email == request.auth.token.email;
+    }
+
+    // --- Collection Rules ---
+
+    // 1. Experiences (System Memory)
+    match /experiences/{expId} {
+      allow get: if isVerified();
+      allow list: if isVerified() && resource.data.hits >= 0; // Prevent blanket scraping
+      allow create: if isVerified() && isValidId(expId) && isValidExperience(incoming());
+      allow update: if isVerified() && isValidExperience(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['hits', 'content'])
+        && incoming().createdBy == existing().createdBy;
+    }
+
+    // 2. Projects
+    match /projects/{projectId} {
+      allow get: if isOwner(existing().ownerId);
+      allow list: if isOwner(resource.data.ownerId);
+      allow create: if isVerified() && isValidId(projectId) && isValidProject(incoming());
+      allow update: if isOwner(existing().ownerId) && isValidProject(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'status', 'lastState'])
+        && incoming().ownerId == existing().ownerId;
+      allow delete: if isOwner(existing().ownerId);
+    }
+
+    // 3. User Profiles
+    match /users/{userId} {
+      allow get: if isVerified(); // Users can see each other's basic profile
+      allow create, update: if isOwner(userId) && isValidUser(incoming());
+    }
+  }
+}

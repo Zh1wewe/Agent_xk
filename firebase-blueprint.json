@@ -1,0 +1,58 @@
+{
+  "entities": {
+    "Experience": {
+      "title": "Agent Experience",
+      "description": "Cross-project memory chunk used for agent evolution.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "enum": ["Pattern", "Fix_Trace", "Preference", "Negative"] },
+        "content": { "type": "string" },
+        "hits": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "tags": { "type": "array" }
+      },
+      "required": ["type", "content", "hits", "createdAt", "createdBy"]
+    },
+    "Project": {
+      "title": "Development Project",
+      "description": "Represents a distinct app building task.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "status": { "enum": ["active", "completed", "archived"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastState": { "type": "object" }
+      },
+      "required": ["name", "ownerId", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "Basic user identity.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" }
+      },
+      "required": ["userId", "email"]
+    }
+  },
+  "firestore": {
+    "/experiences/{experienceId}": {
+      "schema": "Experience",
+      "description": "Global shared memory pool."
+    },
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "User specific projects."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data."
+    }
+  }
+}
