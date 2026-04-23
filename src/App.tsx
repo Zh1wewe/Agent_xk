@@ -35,6 +35,11 @@ import { translations, Language } from './lib/i18n';
 
 // --- Types ---
 
+interface AgentConfig {
+  selectedProvider: string;
+  selectedModel: string;
+}
+
 interface ProviderConfig {
   apiKey: string;
   apiEndpoint: string;
@@ -42,8 +47,7 @@ interface ProviderConfig {
 
 interface AppSettings {
   lang: Language;
-  selectedProvider: string;
-  selectedModel: string;
+  agentConfigs: Record<string, AgentConfig>;
   providerConfigs: Record<string, ProviderConfig>;
   prompts: {
     master: string;
@@ -207,10 +211,17 @@ export default function App() {
       defaultConfigs[p.id] = { apiKey: '', apiEndpoint: p.defaultEndpoint };
     });
 
+    const defaultAgentConfigs: Record<string, AgentConfig> = {
+      master: { selectedProvider: 'openai', selectedModel: 'gpt-4o' },
+      creative: { selectedProvider: 'google', selectedModel: 'gemini-2.0-pro-exp-0205' },
+      design: { selectedProvider: 'anthropic', selectedModel: 'claude-3-5-sonnet-latest' },
+      dev: { selectedProvider: 'deepseek', selectedModel: 'deepseek-coder' },
+      reflect: { selectedProvider: 'openai', selectedModel: 'o1' }
+    };
+
     const defaultSettings: AppSettings = {
       lang: 'zh',
-      selectedProvider: 'openai',
-      selectedModel: 'gpt-4o',
+      agentConfigs: defaultAgentConfigs,
       providerConfigs: defaultConfigs,
       prompts: {
         master: "You are the project manager agent. Efficiently schedule DAG tasks and manage the state.",
@@ -231,32 +242,31 @@ export default function App() {
     try {
       const parsed = JSON.parse(saved);
       // Migrate old config if necessary
-      if (parsed.apiKey && !parsed.providerConfigs) {
-         parsed.providerConfigs = defaultConfigs;
-         if (parsed.selectedModel) {
-            const legacyModel = parsed.selectedModel;
-            let foundProvider = 'openai';
-            for (const p of AI_PROVIDERS) {
-              if (p.models.find(m => m.id === legacyModel)) {
-                foundProvider = p.id;
-                break;
-              }
-            }
-            parsed.selectedProvider = foundProvider;
-            parsed.providerConfigs[foundProvider] = {
-               apiKey: parsed.apiKey || '',
-               apiEndpoint: parsed.apiEndpoint || AI_PROVIDERS.find(p => p.id === foundProvider)?.defaultEndpoint || 'https://api.openai.com/v1'
-            };
-         }
+      if (!parsed.agentConfigs && parsed.selectedProvider) {
+         parsed.agentConfigs = {
+            master: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel },
+            creative: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel },
+            design: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel },
+            dev: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel },
+            reflect: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel }
+         };
       }
-      return { ...defaultSettings, ...parsed, providerConfigs: { ...defaultConfigs, ...(parsed.providerConfigs || {}) } };
+      return { 
+        ...defaultSettings, 
+        ...parsed, 
+        providerConfigs: { ...defaultConfigs, ...(parsed.providerConfigs || {}) },
+        agentConfigs: { ...defaultAgentConfigs, ...(parsed.agentConfigs || {}) }
+      };
     } catch {
       return defaultSettings;
     }
   });
 
-  const currentProviderConfig = settings.providerConfigs[settings.selectedProvider] || { apiKey: '', apiEndpoint: '' };
-  const currentProviderData = AI_PROVIDERS.find(p => p.id === settings.selectedProvider) || AI_PROVIDERS[0];
+  const [settingsActiveAgent, setSettingsActiveAgent] = useState<'master' | 'creative' | 'design' | 'dev' | 'reflect'>('master');
+  const activeAgentConfig = settings.agentConfigs[settingsActiveAgent] || settings.agentConfigs['master'];
+  
+  const currentProviderConfig = settings.providerConfigs[activeAgentConfig.selectedProvider] || { apiKey: '', apiEndpoint: '' };
+  const currentProviderData = AI_PROVIDERS.find(p => p.id === activeAgentConfig.selectedProvider) || AI_PROVIDERS[0];
   const [testConnectionState, setTestConnectionState] = useState<{status: 'idle' | 'testing' | 'success' | 'error', message: string}>({status: 'idle', message: ''});
 
 
@@ -429,17 +439,20 @@ Please process this based on your specialty. Output a concise response.
 `.trim();
 
       try {
-        if (!currentProviderConfig?.apiEndpoint) {
-           throw new Error("API Endpoint not configured for the selected provider.");
+        const dynamicAgentConfig = settings.agentConfigs[currentAgent] || settings.agentConfigs['master'];
+        const dynamicProviderConfig = settings.providerConfigs[dynamicAgentConfig.selectedProvider];
+
+        if (!dynamicProviderConfig?.apiEndpoint) {
+           throw new Error(`API Endpoint not configured for the selected provider: ${dynamicAgentConfig.selectedProvider}`);
         }
-        const response = await fetch(`${currentProviderConfig.apiEndpoint.replace(/\/$/, '')}/chat/completions`, {
+        const response = await fetch(`${dynamicProviderConfig.apiEndpoint.replace(/\/$/, '')}/chat/completions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${currentProviderConfig.apiKey || ''}`
+            'Authorization': `Bearer ${dynamicProviderConfig.apiKey || ''}`
           },
           body: JSON.stringify({
-            model: settings.selectedModel || "gpt-4o",
+            model: dynamicAgentConfig.selectedModel || "gpt-4o",
             messages: [
               { role: "system", content: systemInstruction },
               { role: "user", content: finalPrompt }
@@ -544,7 +557,7 @@ Please process this based on your specialty. Output a concise response.
           'Authorization': `Bearer ${config.apiKey || ''}`
         },
         body: JSON.stringify({
-          model: settings.selectedModel,
+          model: activeAgentConfig.selectedModel,
           messages: [{ role: "user", content: "print('hello')" }],
           max_tokens: 10
         })
@@ -650,21 +663,53 @@ Please process this based on your specialty. Output a concise response.
 
                 {activeTab === 'models' && (
                   <div className="space-y-6 animate-in fade-in duration-300">
+                    
+                    {/* Agent Target Selector */}
+                    <div className="space-y-3 pb-4 border-b border-zinc-800">
+                      <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                        <UserIcon className="w-3 h-3" /> {settings.lang === 'zh' ? '目标智能体 (配置独立模型)' : 'Target Agent (Independent Config)'}
+                      </label>
+                      <div className="grid grid-cols-5 gap-2">
+                        {['master', 'creative', 'design', 'dev', 'reflect'].map((agent) => (
+                          <button
+                            key={agent}
+                            onClick={() => {
+                              setSettingsActiveAgent(agent as any);
+                              setTestConnectionState({ status: 'idle', message: '' });
+                            }}
+                            className={`py-2 px-2 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all truncate ${
+                              settingsActiveAgent === agent 
+                                ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500' 
+                                : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                            }`}
+                          >
+                            {agent}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="flex gap-4">
                       {/* Provider Select */}
                       <div className="flex-1 space-y-3">
                         <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-                          <Network className="w-3 h-3" /> Provider
+                          <Network className="w-3 h-3" /> {settings.lang === 'zh' ? '核心服务商' : 'Provider'}
                         </label>
                         <select 
-                          value={settings.selectedProvider}
+                          value={activeAgentConfig.selectedProvider}
                           onChange={(e) => {
                             const newProv = e.target.value;
                             const provObj = AI_PROVIDERS.find(p => p.id === newProv);
                             setSettings(s => ({ 
                               ...s, 
-                              selectedProvider: newProv,
-                              selectedModel: provObj ? provObj.models[0].id : s.selectedModel
+                              agentConfigs: {
+                                ...s.agentConfigs,
+                                [settingsActiveAgent]: {
+                                  ...s.agentConfigs[settingsActiveAgent],
+                                  selectedProvider: newProv,
+                                  selectedModel: provObj ? provObj.models[0].id : s.agentConfigs[settingsActiveAgent].selectedModel
+                                }
+                              }
                             }));
                             setTestConnectionState({ status: 'idle', message: '' });
                           }}
@@ -682,9 +727,18 @@ Please process this based on your specialty. Output a concise response.
                           <Box className="w-3 h-3" /> {t.model}
                         </label>
                         <select 
-                          value={settings.selectedModel}
+                          value={activeAgentConfig.selectedModel}
                           onChange={(e) => {
-                            setSettings(s => ({ ...s, selectedModel: e.target.value }));
+                            setSettings(s => ({
+                              ...s,
+                              agentConfigs: {
+                                ...s.agentConfigs,
+                                [settingsActiveAgent]: {
+                                  ...s.agentConfigs[settingsActiveAgent],
+                                  selectedModel: e.target.value
+                                }
+                              }
+                            }));
                             setTestConnectionState({ status: 'idle', message: '' });
                           }}
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 appearance-none transition-colors"
@@ -707,7 +761,10 @@ Please process this based on your specialty. Output a concise response.
                           ...s, 
                           providerConfigs: {
                             ...s.providerConfigs,
-                            [s.selectedProvider]: { ...s.providerConfigs[s.selectedProvider], apiKey: e.target.value }
+                            [activeAgentConfig.selectedProvider]: { 
+                              ...s.providerConfigs[activeAgentConfig.selectedProvider], 
+                              apiKey: e.target.value 
+                            }
                           }
                         }))}
                         placeholder={`sk-... (${currentProviderData.name} API Key)`}
@@ -726,14 +783,17 @@ Please process this based on your specialty. Output a concise response.
                           ...s, 
                           providerConfigs: {
                             ...s.providerConfigs,
-                            [s.selectedProvider]: { ...s.providerConfigs[s.selectedProvider], apiEndpoint: e.target.value }
+                            [activeAgentConfig.selectedProvider]: { 
+                              ...s.providerConfigs[activeAgentConfig.selectedProvider], 
+                              apiEndpoint: e.target.value 
+                            }
                           }
                         }))}
                         placeholder={currentProviderData.defaultEndpoint}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors"
                       />
                       <p className="text-[9px] text-zinc-600 italic">
-                        * {settings.lang === 'zh' ? '每个大模型平台隔离保存接口地址与 Key。' : 'Keys and endpoints are isolated per provider.'}
+                        * {settings.lang === 'zh' ? '每个大模型平台隔离保存接口地址与 Key。跨智能体共用同一平台配额。' : 'Keys and endpoints are isolated per provider. Shared across agents using the same provider.'}
                       </p>
                     </div>
 
