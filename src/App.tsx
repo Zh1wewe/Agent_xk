@@ -47,16 +47,26 @@ interface ProviderConfig {
   apiEndpoint: string;
 }
 
+interface CustomModelConfig {
+  id: string;
+  name: string;
+  apiEndpoint: string;
+  apiKey: string;
+  modelString: string;
+}
+
 interface AppSettings {
   lang: Language;
   agentConfigs: Record<string, AgentConfig>;
   providerConfigs: Record<string, ProviderConfig>;
+  customModels: CustomModelConfig[];
   prompts: {
     master: string;
     design: string;
     dev: string;
     reflect: string;
     creative: string;
+    recorder: string;
   };
   initSettings: {
     projectName: string;
@@ -193,23 +203,66 @@ const ExperiencePill = ({ type }: { type: string }) => {
   );
 };
 
+interface VirtualFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  readOnly: boolean;
+  directory: string;
+  source: 'user' | 'agent';
+}
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'models' | 'prompts' | 'init' | 'help'>('general');
   const [initFeedback, setInitFeedback] = useState("");
   const [inputMessage, setInputMessage] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState<{ name: string, size: number, type: string }[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<{ id: string; name: string; size: number; type: string }[]>([]);
+  const [virtualFiles, setVirtualFiles] = useState<VirtualFile[]>(() => {
+    try {
+      const saved = localStorage.getItem('agent_xk_vfiles');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('agent_xk_vfiles', JSON.stringify(virtualFiles));
+  }, [virtualFiles]);
+
+  const [showExplorer, setShowExplorer] = useState(false);
+  const [currentDir, setCurrentDir] = useState('/');
+  const [explorerContextMenu, setExplorerContextMenu] = useState<{x: number, y: number, fileId: string} | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
-  const [activeAgent, setActiveAgent] = useState<'master' | 'creative' | 'design' | 'dev' | 'reflect'>('master');
+  const [activeAgent, setActiveAgent] = useState<'master' | 'creative' | 'design' | 'dev' | 'reflect' | 'recorder'>('master');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [messageHistories, setMessageHistories] = useState<Record<string, { id: string, role: 'user' | 'agent' | 'system', content: string, timestamp: string }[]>>({
-    master: [{ id: 'm1', role: 'system', content: 'Master Nexus: Integrated. Waiting for Project Directives.', timestamp: new Date().toLocaleTimeString() }],
-    creative: [{ id: 'c1', role: 'system', content: 'Creative Studio: Listening for Visionary Inputs.', timestamp: new Date().toLocaleTimeString() }],
-    design: [{ id: 'd1', role: 'system', content: 'Design Core: Ready for Architectural Blueprints.', timestamp: new Date().toLocaleTimeString() }],
-    dev: [{ id: 'v1', role: 'system', content: 'Dev Node: Initialized. Repository scan complete.', timestamp: new Date().toLocaleTimeString() }],
-    reflect: [{ id: 'r1', role: 'system', content: 'Reflection Sub-system: Active. Monitoring entropy.', timestamp: new Date().toLocaleTimeString() }]
+  const [messageHistories, setMessageHistories] = useState<Record<string, { id: string, role: 'user' | 'agent' | 'system', content: string, timestamp: string }[]>>(() => {
+    // Attempt to inject experience upon project start
+    let baseExp = "";
+    try {
+      const saved = localStorage.getItem('agent_xk_vfiles');
+      if (saved) {
+        const vfs: VirtualFile[] = JSON.parse(saved);
+        const expFile = vfs.find(f => f.name === 'Core_Experience_Memory.md');
+        if (expFile && 'content' in expFile && expFile.content) {
+          baseExp = `\n\n[INJECTED EXPERIENCE ARCHIVE]\n${(expFile as any).content}\n`;
+        }
+      }
+    } catch {}
+
+    return {
+      master: [{ id: 'm1', role: 'system', content: 'Master Nexus: Integrated. Waiting for Project Directives.' + baseExp, timestamp: new Date().toLocaleTimeString() }],
+      creative: [{ id: 'c1', role: 'system', content: 'Creative Studio: Listening for Visionary Inputs.' + baseExp, timestamp: new Date().toLocaleTimeString() }],
+      design: [{ id: 'd1', role: 'system', content: 'Design Core: Ready for Architectural Blueprints.' + baseExp, timestamp: new Date().toLocaleTimeString() }],
+      dev: [{ id: 'v1', role: 'system', content: 'Dev Node: Initialized. Repository scan complete.' + baseExp, timestamp: new Date().toLocaleTimeString() }],
+      reflect: [{ id: 'r1', role: 'system', content: 'Reflection Sub-system: Active. Monitoring entropy.' + baseExp, timestamp: new Date().toLocaleTimeString() }],
+      recorder: [{ id: 'rc1', role: 'system', content: 'Recorder Agent: Online. Monitoring interaction logs.', timestamp: new Date().toLocaleTimeString() }]
+    };
   });
   
   // Settings initialization from localStorage
@@ -226,19 +279,22 @@ export default function App() {
       creative: { selectedProvider: 'google', selectedModel: 'gemini-2.0-pro-exp-0205' },
       design: { selectedProvider: 'anthropic', selectedModel: 'claude-3-5-sonnet-latest' },
       dev: { selectedProvider: 'deepseek', selectedModel: 'deepseek-coder' },
-      reflect: { selectedProvider: 'openai', selectedModel: 'o1' }
+      reflect: { selectedProvider: 'openai', selectedModel: 'o1' },
+      recorder: { selectedProvider: 'google', selectedModel: 'gemini-2.5-flash' }
     };
 
     const defaultSettings: AppSettings = {
       lang: 'zh',
       agentConfigs: defaultAgentConfigs,
       providerConfigs: defaultConfigs,
+      customModels: [],
       prompts: {
         master: "You are the project manager agent. Efficiently schedule DAG tasks and manage the state.",
         design: "You are the software designer agent. Create optimized schemas and architectures.",
         dev: "You are the developer agent. Write clean, modular, and idiomatic code.",
         reflect: "You are the reflection agent. Analyze failures and output updated meta-instructions.",
-        creative: "You are the Creative Director. Focus on enhancing user experience and visual aesthetic using natural dialogue."
+        creative: "You are the Creative Director. Focus on enhancing user experience and visual aesthetic using natural dialogue.",
+        recorder: "You are the Data Recorder Agent. Your explicit task is to observe the interaction history between the user and other agents, distill this into structured 'experience', and maintain an evolving context archive. Extract what works, what fails, user preferences, and generate a robust summary to be saved in the database."
       },
       initSettings: {
         projectName: "xk_alpha",
@@ -258,9 +314,23 @@ export default function App() {
             creative: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel },
             design: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel },
             dev: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel },
-            reflect: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel }
+            reflect: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel },
+            recorder: { selectedProvider: parsed.selectedProvider, selectedModel: parsed.selectedModel }
          };
       }
+      
+      if (!parsed.customModels) {
+        parsed.customModels = [];
+      }
+      if (!parsed.prompts?.recorder) {
+        if (!parsed.prompts) parsed.prompts = { ...defaultSettings.prompts };
+        parsed.prompts.recorder = defaultSettings.prompts.recorder;
+      }
+      if (!parsed.agentConfigs?.recorder) {
+        if (!parsed.agentConfigs) parsed.agentConfigs = { ...defaultAgentConfigs };
+        parsed.agentConfigs.recorder = defaultAgentConfigs.recorder;
+      }
+
       return { 
         ...defaultSettings, 
         ...parsed, 
@@ -272,11 +342,37 @@ export default function App() {
     }
   });
 
-  const [settingsActiveAgent, setSettingsActiveAgent] = useState<'master' | 'creative' | 'design' | 'dev' | 'reflect'>('master');
+  const [settingsActiveAgent, setSettingsActiveAgent] = useState<'master' | 'creative' | 'design' | 'dev' | 'reflect' | 'recorder'>('master');
   const activeAgentConfig = settings.agentConfigs[settingsActiveAgent] || settings.agentConfigs['master'];
   
-  const currentProviderConfig = settings.providerConfigs[activeAgentConfig.selectedProvider] || { apiKey: '', apiEndpoint: '' };
-  const currentProviderData = AI_PROVIDERS.find(p => p.id === activeAgentConfig.selectedProvider) || AI_PROVIDERS[0];
+  const ALL_PROVIDERS = [
+    ...AI_PROVIDERS,
+    {
+      id: 'user_custom_models',
+      name: settings.lang === 'zh' ? '⭐ 自定义模型库' : '⭐ Custom Models',
+      defaultEndpoint: '',
+      models: settings.customModels.length > 0 
+        ? settings.customModels.map(m => ({ id: m.id, name: m.name })) 
+        : [{ id: 'no_models_yet', name: settings.lang === 'zh' ? '暂无模型 (请在下方添加)' : 'No models added' }]
+    }
+  ];
+
+  const currentProviderData = ALL_PROVIDERS.find(p => p.id === activeAgentConfig.selectedProvider) || ALL_PROVIDERS[0];
+  
+  // Resolve actual API settings dynamically based on custom model or standard provider
+  let currentProviderConfig = settings.providerConfigs[activeAgentConfig.selectedProvider] || { apiKey: '', apiEndpoint: currentProviderData.defaultEndpoint };
+  let activeModelString = activeAgentConfig.selectedModel;
+
+  if (activeAgentConfig.selectedProvider === 'user_custom_models') {
+    const customizedModel = settings.customModels.find(m => m.id === activeAgentConfig.selectedModel);
+    if (customizedModel) {
+      currentProviderConfig = { apiKey: customizedModel.apiKey, apiEndpoint: customizedModel.apiEndpoint };
+      activeModelString = customizedModel.modelString;
+    }
+  } else if (activeAgentConfig.selectedModel === 'custom') {
+    activeModelString = activeAgentConfig.customModel || "gpt-4o";
+  }
+
   const [testConnectionState, setTestConnectionState] = useState<{status: 'idle' | 'testing' | 'success' | 'error', message: string}>({status: 'idle', message: ''});
 
 
@@ -372,15 +468,35 @@ export default function App() {
   const processFiles = (fileList: FileList | File[] | null) => {
     if (!fileList || fileList.length === 0) return;
     const files = Array.from(fileList);
-    const newFiles = files.map(file => ({
-      name: file.name,
-      size: file.size,
-      type: file.type || 'unknown/file'
-    }));
+    
+    const newFiles = files.map(file => {
+      const id = 'file_' + Math.random().toString(36).substr(2, 9);
+      return {
+        id,
+        name: file.name,
+        size: file.size,
+        type: file.type || 'unknown/file'
+      };
+    });
+
     setUploadedFiles(prev => {
       const existingNames = new Set(prev.map(f => f.name));
       const filtered = newFiles.filter(f => !existingNames.has(f.name));
       return [...prev, ...filtered];
+    });
+
+    setVirtualFiles(prev => {
+      const existingNames = new Set(prev.map(f => f.name));
+      const newVFs = newFiles.filter(f => !existingNames.has(f.name)).map(f => ({
+        id: f.id,
+        name: f.name,
+        type: f.type,
+        size: f.size,
+        readOnly: true, // Default read-only for user-uploaded data
+        directory: '/',
+        source: 'user' as const
+      }));
+      return [...prev, ...newVFs];
     });
   };
 
@@ -608,6 +724,92 @@ Please process this based on your specialty. Output a concise response.
     setUploadedFiles([]);
   };
 
+  const handleRecordExperience = async () => {
+    try {
+      const recAgentConfig = settings.agentConfigs['recorder'] || { selectedProvider: 'google', selectedModel: 'gemini-2.5-flash' };
+      
+      let recProviderConfig = settings.providerConfigs[recAgentConfig.selectedProvider] || { apiKey: '', apiEndpoint: '' };
+      let recModelStr = recAgentConfig.selectedModel;
+      
+      if (recAgentConfig.selectedProvider === 'user_custom_models') {
+        const customizedModel = settings.customModels.find(m => m.id === recAgentConfig.selectedModel);
+        if (customizedModel) {
+            recProviderConfig = { apiKey: customizedModel.apiKey, apiEndpoint: customizedModel.apiEndpoint };
+            recModelStr = customizedModel.modelString;
+        }
+      } else if (recAgentConfig.selectedModel === 'custom') {
+          recModelStr = recAgentConfig.customModel || 'gpt-4o';
+      }
+
+      if (!recProviderConfig.apiEndpoint || !recProviderConfig.apiKey || recProviderConfig.apiKey.length < 5) {
+        alert("Recorder Agent is not properly configured. Please check AI Model Settings.");
+        return;
+      }
+      
+      let recEndpointUrl = recProviderConfig.apiEndpoint.trim();
+      if (!recEndpointUrl.endsWith('/chat/completions')) recEndpointUrl = recEndpointUrl.replace(/\/$/, '') + '/chat/completions';
+
+      // Gather last few messages from active agent history for context context
+      const currentHistory = messageHistories[activeAgent] || [];
+      const recentChat = currentHistory.slice(-5).map(m => `[${m.role.toUpperCase()}] ${m.content}`).join('\n\n');
+
+      // Look for the existing unified experience file
+      const existingExpFile = virtualFiles.find(f => f.name === 'Core_Experience_Memory.md');
+      const oldExpContent = existingExpFile && 'content' in existingExpFile ? (existingExpFile as any).content : "No prior experience recorded.";
+
+      const recPrompt = `Please analyze the latest interaction and update the Core Experience Memory.
+Wait, keep it very modular. 
+[EXISTING EXPERIENCE]
+${oldExpContent}
+
+[LATEST CHAT CONTEXT]
+${recentChat}
+
+Task:
+Extract any new reusable knowledge, failure summaries, user preferences, or configurations from the 'LATEST CHAT CONTEXT'. 
+Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely updated markdown content. DO NOT wrap it in JSON, just output the raw markdown. Use well-structured categories like # Preferences, # Troubleshooting, etc.`;
+
+      const recResp = await fetch(recEndpointUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${recProviderConfig.apiKey}` },
+        body: JSON.stringify({
+          model: recModelStr,
+          messages: [
+            { role: "system", content: settings.prompts.recorder || "You are the Data Recorder Agent." },
+            { role: "user", content: recPrompt }
+          ]
+        })
+      });
+
+      if (recResp.ok) {
+        const recData = await recResp.json();
+        const updatedSummary = recData.choices?.[0]?.message?.content || "";
+        if (updatedSummary) {
+          setVirtualFiles(prev => {
+            const filtered = prev.filter(f => f.name !== 'Core_Experience_Memory.md');
+            return [...filtered, {
+              id: 'exp_' + Date.now(),
+              name: 'Core_Experience_Memory.md',
+              type: 'text/markdown',
+              size: updatedSummary.length,
+              readOnly: true,
+              directory: '/agent_records',
+              source: 'agent',
+              content: updatedSummary
+            }];
+          });
+          // Alert user or provide feedback successfully
+          alert("Experience successfully pooled and merged into Core_Experience_Memory.md!");
+        }
+      } else {
+         const err = await recResp.text();
+         alert("Experience Recorder Failed: " + err);
+      }
+    } catch(err: any) {
+      alert("Recorder Background Error: " + err.message);
+    }
+  };
+
   const handleTestConnection = async () => {
     if (!currentProviderConfig?.apiEndpoint) {
       setTestConnectionState({ status: 'error', message: 'API Endpoint is not configured.' });
@@ -616,9 +818,7 @@ Please process this based on your specialty. Output a concise response.
     setTestConnectionState({ status: 'testing', message: 'Testing connection...' });
     try {
       const config = currentProviderConfig;
-      const resolvedModel = activeAgentConfig.selectedModel === 'custom' 
-        ? (activeAgentConfig.customModel || "gpt-4o") 
-        : activeAgentConfig.selectedModel;
+      const resolvedModel = activeModelString;
         
       let endpointUrl = config.apiEndpoint.trim();
       if (!endpointUrl.endsWith('/chat/completions')) {
@@ -698,6 +898,149 @@ Please process this based on your specialty. Output a concise response.
                 <p className="text-xs text-zinc-500 font-mono">Supports any documents or images</p>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* --- Explorer Modal --- */}
+      <AnimatePresence>
+        {showExplorer && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => {
+              if (explorerContextMenu) setExplorerContextMenu(null);
+            }}
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col w-[800px] h-[600px] max-w-full max-h-full"
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/50 cursor-default">
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-200 font-bold text-sm">部署数据库 (Deployment Data Pool)</span>
+                  <span className="text-[10px] font-mono text-zinc-500 bg-zinc-800 px-2 rounded">EXP. LAYER</span>
+                </div>
+                <button 
+                  onClick={() => setShowExplorer(false)}
+                  className="p-1 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex flex-1 min-h-0">
+                {/* Left pane: Directories */}
+                <div className="w-48 border-r border-zinc-800 bg-zinc-900/20 p-2 overflow-y-auto space-y-1">
+                  <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest pl-2 mb-2 pt-2">Directories</div>
+                  {Array.from(new Set(virtualFiles.map(f => f.directory).concat(['/', '/agent_records']))).map(dir => (
+                    <button
+                      key={dir}
+                      onClick={() => { setCurrentDir(dir); setExplorerContextMenu(null); }}
+                      className={`w-full text-left px-2 py-1.5 text-[11px] font-mono rounded flex items-center gap-2 transition-colors ${
+                        currentDir === dir ? 'bg-emerald-500/10 text-emerald-500 font-bold border border-emerald-500/30' : 'text-zinc-400 hover:bg-zinc-800 border border-transparent'
+                      }`}
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      <span className="truncate">{dir}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Right pane: Files */}
+                <div className="flex-1 bg-black p-4 overflow-y-auto relative" onContextMenu={(e) => { e.preventDefault(); setExplorerContextMenu(null); }}>
+                  <div className="text-[10px] font-mono text-zinc-500 mb-4 flex items-center gap-2">
+                    <span className="text-emerald-500/70">{currentDir}</span> 
+                    <span className="text-zinc-700">|</span> 
+                    {virtualFiles.filter(f => f.directory === currentDir).length} files
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-4">
+                    {virtualFiles.filter(f => f.directory === currentDir).map((f) => (
+                      <div 
+                        key={f.id}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setExplorerContextMenu({ x: e.clientX, y: e.clientY, fileId: f.id });
+                        }}
+                        className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-zinc-900 cursor-pointer border border-transparent hover:border-zinc-800 transition-all select-none relative group"
+                      >
+                        <FileIcon className={`w-8 h-8 ${f.source === 'agent' ? 'text-purple-500' : 'text-emerald-500'}`} />
+                        <div className="text-center w-full">
+                          <p className="text-[11px] text-zinc-300 truncate" title={f.name}>{f.name}</p>
+                          <div className="flex items-center justify-center gap-1 mt-1">
+                            {f.readOnly ? (
+                              <span className="text-[8px] px-1 bg-rose-500/20 text-rose-400 font-mono rounded border border-rose-500/10">R/O</span>
+                            ) : (
+                              <span className="text-[8px] px-1 bg-blue-500/20 text-blue-400 font-mono rounded border border-blue-500/10">R/W</span>
+                            )}
+                            <span className="text-[8px] text-zinc-600 font-mono">{(f.size / 1024).toFixed(1)}K</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {virtualFiles.filter(f => f.directory === currentDir).length === 0 && (
+                      <div className="col-span-4 text-center py-12 text-zinc-600 text-xs italic font-mono">
+                        Directory is empty
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Context Menu */}
+            <AnimatePresence>
+              {explorerContextMenu && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.1 }}
+                  className="fixed z-[70] bg-zinc-900 border border-zinc-700 rounded shadow-xl min-w-[160px] overflow-hidden"
+                  style={{ top: explorerContextMenu.y, left: explorerContextMenu.x }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="px-3 py-1.5 border-b border-zinc-800 bg-black/20 text-[9px] text-zinc-500 font-mono uppercase tracking-widest">
+                    Properties
+                  </div>
+                  <button 
+                    className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 hover:text-white transition-colors flex items-center gap-2"
+                    onClick={() => {
+                      setVirtualFiles(prev => prev.map(vf => vf.id === explorerContextMenu.fileId ? { ...vf, readOnly: true } : vf));
+                      setExplorerContextMenu(null);
+                    }}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-rose-500 flex-none" /> Set Read-Only
+                  </button>
+                  <button 
+                    className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 hover:text-white transition-colors flex items-center gap-2"
+                    onClick={() => {
+                      setVirtualFiles(prev => prev.map(vf => vf.id === explorerContextMenu.fileId ? { ...vf, readOnly: false } : vf));
+                      setExplorerContextMenu(null);
+                    }}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-blue-500 flex-none" /> Set Read / Write
+                  </button>
+                  <div className="border-t border-zinc-800 mt-1" />
+                  <button 
+                    className="w-full text-left px-3 py-2 text-xs text-rose-400 hover:bg-rose-500 hover:text-white transition-colors font-bold flex items-center justify-between"
+                    onClick={() => {
+                      setVirtualFiles(prev => prev.filter(vf => vf.id !== explorerContextMenu.fileId));
+                      setExplorerContextMenu(null);
+                    }}
+                  >
+                    Delete File <Trash2 className="w-3 h-3" />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
@@ -804,13 +1147,11 @@ Please process this based on your specialty. Output a concise response.
                       {/* Provider Select */}
                       <div className="flex-1 space-y-3">
                         <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-                          <Network className="w-3 h-3" /> {settings.lang === 'zh' ? '核心服务商' : 'Provider'}
-                        </label>
-                        <select 
+                          <Network className="w-3 h-3" /> {settings.lang === 'zh' ? '核心服务商' : 'Provider'}</label><select 
                           value={activeAgentConfig.selectedProvider}
                           onChange={(e) => {
                             const newProv = e.target.value;
-                            const provObj = AI_PROVIDERS.find(p => p.id === newProv);
+                            const provObj = ALL_PROVIDERS.find(p => p.id === newProv);
                             setSettings(s => ({ 
                               ...s, 
                               agentConfigs: {
@@ -826,7 +1167,7 @@ Please process this based on your specialty. Output a concise response.
                           }}
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 appearance-none transition-colors"
                         >
-                          {AI_PROVIDERS.map(p => (
+                          {ALL_PROVIDERS.map(p => (
                             <option key={p.id} value={p.id}>{p.name}</option>
                           ))}
                         </select>
@@ -855,9 +1196,11 @@ Please process this based on your specialty. Output a concise response.
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 appearance-none transition-colors"
                         >
                           {currentProviderData.models.map(m => (
-                            <option key={m.id} value={m.id}>{m.name}</option>
+                            <option key={m.id} value={m.id} disabled={m.id === 'no_models_yet'}>{m.name}</option>
                           ))}
-                          <option value="custom">✏️ {settings.lang === 'zh' ? '自定义 (Custom)' : 'Custom Model'}</option>
+                          {activeAgentConfig.selectedProvider !== 'user_custom_models' && (
+                            <option value="custom">✏️ {settings.lang === 'zh' ? '临时自定义结构 (Legacy Custom)' : 'Legacy Custom String'}</option>
+                          )}
                         </select>
 
                         <AnimatePresence>
@@ -890,22 +1233,31 @@ Please process this based on your specialty. Output a concise response.
                       <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
                         <Key className="w-3 h-3" /> {t.apiKey}
                       </label>
-                      <input 
-                        type="password"
-                        value={currentProviderConfig?.apiKey || ''}
-                        onChange={(e) => setSettings(s => ({ 
-                          ...s, 
-                          providerConfigs: {
-                            ...s.providerConfigs,
-                            [activeAgentConfig.selectedProvider]: { 
-                              ...s.providerConfigs[activeAgentConfig.selectedProvider], 
-                              apiKey: e.target.value 
+                      <div className="relative">
+                        <input 
+                          type={showApiKey ? "text" : "password"}
+                          value={currentProviderConfig?.apiKey || ''}
+                          onChange={(e) => setSettings(s => ({ 
+                            ...s, 
+                            providerConfigs: {
+                              ...s.providerConfigs,
+                              [activeAgentConfig.selectedProvider]: { 
+                                ...s.providerConfigs[activeAgentConfig.selectedProvider], 
+                                apiKey: e.target.value 
+                              }
                             }
-                          }
-                        }))}
-                        placeholder={`sk-... (${currentProviderData.name} API Key)`}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors placeholder:text-zinc-700"
-                      />
+                          }))}
+                          placeholder={`sk-... (${currentProviderData.name} API Key)`}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 pr-10 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors placeholder:text-zinc-700"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 opacity-60 hover:opacity-100 transition-opacity"
+                        >
+                          {showApiKey ? "👁️" : "👁️‍🗨️"}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -915,6 +1267,7 @@ Please process this based on your specialty. Output a concise response.
                       <input 
                         type="text"
                         value={currentProviderConfig?.apiEndpoint || ''}
+                        disabled={activeAgentConfig.selectedProvider === 'user_custom_models'}
                         onChange={(e) => setSettings(s => ({ 
                           ...s, 
                           providerConfigs: {
@@ -926,12 +1279,20 @@ Please process this based on your specialty. Output a concise response.
                           }
                         }))}
                         placeholder={currentProviderData.defaultEndpoint}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                        className={`w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors ${activeAgentConfig.selectedProvider === 'user_custom_models' ? 'opacity-50 cursor-not-allowed' : ''}`}
                       />
-                      <p className="text-[9px] text-zinc-600 italic">
-                        * {settings.lang === 'zh' ? '每个大模型平台隔离保存接口地址与 Key。跨智能体共用同一平台配额。' : 'Keys and endpoints are isolated per provider. Shared across agents using the same provider.'}
-                      </p>
+                      {activeAgentConfig.selectedProvider !== 'user_custom_models' && (
+                        <p className="text-[9px] text-zinc-600 italic">
+                          * {settings.lang === 'zh' ? '每个大模型平台隔离保存接口地址与 Key。跨智能体共用同一平台配额。' : 'Keys and endpoints are isolated per provider. Shared across agents using the same provider.'}
+                        </p>
+                      )}
                     </div>
+
+                    {activeAgentConfig.selectedProvider === 'user_custom_models' && (
+                      <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg text-xs text-blue-400">
+                        {settings.lang === 'zh' ? '您正在使用[自定义模型库]中的模型。配置将被该模型自身的 API Key 和 Endpoint 覆盖，请在下方的【模型管理】内添加和编辑。' : 'You are using a custom model from the Custom Models Library. Endpoint and API key are overriden by the specific model config.'}
+                      </div>
+                    )}
 
                     <div className="pt-2 border-t border-zinc-800/50">
                       <div className="flex items-center gap-4">
@@ -965,6 +1326,122 @@ Please process this based on your specialty. Output a concise response.
                   </div>
                 )}
 
+                {activeTab === 'models' && (
+                  <div className="mt-8 pt-8 border-t border-zinc-800 border-dashed animate-in fade-in duration-500 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-zinc-200 text-sm font-bold flex items-center gap-2">
+                          <Cpu className="w-4 h-4 text-emerald-500" />
+                          {settings.lang === 'zh' ? '自定义模型管理 (Custom Model Library)' : 'Custom Model Library'}
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-1">
+                          {settings.lang === 'zh' 
+                            ? '添加支持 OpenAI API 标准格式的各种本地/私有/第三方大模型。添加后可在任何 Agent 的【⭐ 用户自定义模型】分类中直接选用。' 
+                            : 'Manage custom AI models supporting OpenAI chat-completion format. Models will be available across all agents.'}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setSettings(s => ({
+                            ...s,
+                            customModels: [...s.customModels, { id: 'model_' + Date.now(), name: 'New Model', modelString: 'gpt-4', apiKey: '', apiEndpoint: 'https://api.openai.com/v1' }]
+                          }));
+                        }}
+                        className="p-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 text-xs rounded border border-emerald-500/30 hover:text-black font-bold transition-all flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" />
+                        {settings.lang === 'zh' ? '新增配置' : 'New Config'}
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {settings.customModels.map((cm, idx) => (
+                        <div key={cm.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4 relative group">
+                          <div className="absolute right-4 top-4 hidden group-hover:flex items-center gap-2">
+                             <button
+                               onClick={() => {
+                                 setSettings(s => ({
+                                   ...s,
+                                   customModels: s.customModels.filter(m => m.id !== cm.id)
+                                 }));
+                               }}
+                               className="p-1.5 text-zinc-600 hover:bg-rose-500/10 hover:text-rose-500 rounded transition-all"
+                               title="Delete model"
+                             >
+                               <Trash2 className="w-3.5 h-3.5" />
+                             </button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono text-zinc-500 uppercase">1. {settings.lang === 'zh' ? '显示名称' : 'Alias / Display Name'}</label>
+                              <input 
+                                value={cm.name}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSettings(s => ({
+                                    ...s, customModels: s.customModels.map(m => m.id === cm.id ? { ...m, name: val } : m)
+                                  }));
+                                }}
+                                placeholder="Local Llama3 8B"
+                                className="w-full bg-black border border-zinc-800 rounded p-2 text-xs text-zinc-300 focus:border-emerald-500/50"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono text-zinc-500 uppercase">2. {settings.lang === 'zh' ? '真实模型ID' : 'Backend Model String'}</label>
+                              <input 
+                                value={cm.modelString}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSettings(s => ({
+                                    ...s, customModels: s.customModels.map(m => m.id === cm.id ? { ...m, modelString: val } : m)
+                                  }));
+                                }}
+                                placeholder="llama3-8b-instruct"
+                                className="w-full bg-black border border-zinc-800 rounded p-2 text-xs text-zinc-300 focus:border-emerald-500/50"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono text-zinc-500 uppercase">3. API Endpoint</label>
+                              <input 
+                                value={cm.apiEndpoint}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSettings(s => ({
+                                    ...s, customModels: s.customModels.map(m => m.id === cm.id ? { ...m, apiEndpoint: val } : m)
+                                  }));
+                                }}
+                                placeholder="Base URL of OpenAI-compatible API"
+                                className="w-full bg-black border border-zinc-800 rounded p-2 text-xs text-zinc-300 focus:border-emerald-500/50"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono text-zinc-500 uppercase">4. API Key</label>
+                              <input 
+                                type="password"
+                                value={cm.apiKey}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSettings(s => ({
+                                    ...s, customModels: s.customModels.map(m => m.id === cm.id ? { ...m, apiKey: val } : m)
+                                  }));
+                                }}
+                                placeholder="sk-..."
+                                className="w-full bg-black border border-zinc-800 rounded p-2 text-xs text-zinc-300 focus:border-emerald-500/50"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {settings.customModels.length === 0 && (
+                        <div className="text-center py-8 text-zinc-600 text-xs italic border border-zinc-800 border-dashed rounded-lg">
+                          {settings.lang === 'zh' ? '暂无自定义模型。点击右上角添加。' : 'No custom models added yet. Click New Config above.'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {activeTab === 'prompts' && (
                   <div className="space-y-6 animate-in fade-in duration-300">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -973,7 +1450,8 @@ Please process this based on your specialty. Output a concise response.
                         { id: 'creative', label: t.creativePrompt },
                         { id: 'design', label: t.designPrompt },
                         { id: 'dev', label: t.devPrompt },
-                        { id: 'reflect', label: t.reflectPrompt }
+                        { id: 'reflect', label: t.reflectPrompt },
+                        { id: 'recorder', label: settings.lang === 'zh' ? '经验记录员' : 'Data Recorder' }
                       ] as const).map(p => (
                         <div key={p.id} className="space-y-2">
                           <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">{p.label}</label>
@@ -1300,7 +1778,21 @@ Please process this based on your specialty. Output a concise response.
                       accept=".md,.json,.pdf,.txt,.png"
                     />
                   </label>
-                  <span className="text-[9px] text-zinc-600 font-mono">
+                  
+                  <button
+                    onClick={handleRecordExperience}
+                    disabled={!canExecute}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-[10px] font-bold transition-all ${
+                      canExecute 
+                        ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white' 
+                        : 'bg-zinc-900/50 border-zinc-800/50 text-zinc-600 cursor-not-allowed opacity-50'
+                    }`}
+                  >
+                    <Layers className="w-3 h-3" />
+                    经验池+1
+                  </button>
+
+                  <span className="text-[9px] text-zinc-600 font-mono ml-2 border-l border-zinc-800 pl-4">
                     {settings.lang === 'zh' ? '支持 md, json, pdf, txt, png' : 'Supports md, json, pdf, txt, png'}
                   </span>
                 </div>
@@ -1370,22 +1862,35 @@ Please process this based on your specialty. Output a concise response.
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">Workspace Explorer</span>
-                          <button className="p-1 hover:bg-zinc-800 rounded transition-colors">
-                            <Plus className="w-3 h-3 text-zinc-400" />
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowExplorer(true);
+                            }}
+                            className="px-2 py-1 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-black font-bold text-[9px] uppercase tracking-wider rounded transition-colors border border-emerald-500/30"
+                          >
+                            Open Explorer
                           </button>
                         </div>
                         <div className="grid grid-cols-1 gap-1.5">
-                          {uploadedFiles.length > 0 ? uploadedFiles.map((file, i) => (
+                          {virtualFiles.length > 0 ? virtualFiles.slice(0, 3).map((file, i) => (
                             <div key={i} className="flex items-center gap-2 p-2 bg-black/20 rounded border border-zinc-800/50 group">
                               <FileText className="w-3 h-3 text-blue-400" />
-                              <div className="flex-1 min-w-0">
+                              <div className="flex-1 min-w-0 flex items-center justify-between">
                                 <p className="text-[10px] text-zinc-300 truncate">{file.name}</p>
-                                <p className="text-[8px] text-zinc-600 uppercase">{file.type.split('/').pop() || 'File'}</p>
+                                <span className={`text-[8px] px-1 rounded ${file.readOnly ? 'bg-rose-500/20 text-rose-500' : 'bg-blue-500/20 text-blue-400'}`}>
+                                  {file.readOnly ? 'R/O' : 'R/W'}
+                                </span>
                               </div>
                             </div>
                           )) : (
                             <div className="p-4 text-center border border-dashed border-zinc-800 rounded bg-zinc-900/10">
                               <p className="text-[9px] text-zinc-600 italic">No files available in data pool.</p>
+                            </div>
+                          )}
+                          {virtualFiles.length > 3 && (
+                            <div className="text-center text-[9px] text-zinc-500 font-mono">
+                              + {virtualFiles.length - 3} more files...
                             </div>
                           )}
                           <div className="flex items-center gap-2 p-2 bg-emerald-500/5 rounded border border-emerald-500/10">
