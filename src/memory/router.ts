@@ -39,7 +39,8 @@ export async function retrieveExperiences(queryStr: string) {
       ...doc.data()
     } as any)) as Experience[];
   } catch (error) {
-    handleFirestoreError(error, 'list', 'experiences');
+    console.warn("Experience retrieval degraded: ", error);
+    return [];
   }
 }
 
