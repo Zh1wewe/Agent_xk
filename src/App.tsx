@@ -161,7 +161,7 @@ const AI_PROVIDERS = [
 
 const AgentStatusCard = ({ label, status, t, active, onClick }: { label: string; status: 'idle' | 'ready' | 'working'; t: any; active: boolean; onClick: () => void }) => {
   const statusColors = {
-    idle: 'bg-zinc-700 text-zinc-500 border-zinc-800',
+    idle: 'bg-slate-200 dark:bg-zinc-700 text-slate-500 dark:text-zinc-500 border-slate-200 dark:border-zinc-800',
     ready: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
     working: 'bg-blue-500/20 text-blue-400 border-blue-500/30'
   };
@@ -194,10 +194,10 @@ const ExperiencePill = ({ type }: { type: string }) => {
     Pattern: 'text-blue-400 border-blue-400/30 bg-blue-400/5',
     Fix_Trace: 'text-amber-400 border-amber-400/30 bg-amber-400/5',
     Preference: 'text-purple-400 border-purple-400/30 bg-purple-400/5',
-    Negative: 'text-rose-400 border-rose-400/30 bg-rose-400/5'
+    Negative: 'text-rose-500 dark:text-rose-400 border-rose-400/30 bg-rose-400/5'
   };
   return (
-    <span className={`px-2 py-0.5 border rounded text-[9px] font-mono ${colors[type] || 'text-zinc-500'}`}>
+    <span className={`px-2 py-0.5 border rounded text-[9px] font-mono ${colors[type] || 'text-slate-500 dark:text-zinc-500'}`}>
       {type}
     </span>
   );
@@ -868,7 +868,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
 
   if (loading) {
     return (
-      <div className="h-screen bg-[#0a0a0a] flex items-center justify-center font-mono text-zinc-500 text-xs">
+      <div className="h-screen bg-slate-100 dark:bg-[#0a0a0a] flex items-center justify-center font-mono text-slate-500 dark:text-zinc-500 text-xs">
         INITIALIZING CORE STATE BUS...
       </div>
     );
@@ -876,7 +876,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
 
   return (
     <div 
-      className="flex h-screen bg-[#0a0a0a] text-zinc-300 font-sans overflow-hidden relative" 
+      className="flex h-screen bg-slate-100 dark:bg-[#0a0a0a] text-slate-700 dark:text-zinc-300 font-sans overflow-hidden relative" 
       id="app-workbench"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -891,11 +891,11 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-[100] bg-emerald-500/10 border-2 border-dashed border-emerald-500/50 backdrop-blur-sm flex items-center justify-center pointer-events-none"
           >
-            <div className="flex flex-col items-center gap-4 bg-zinc-950 p-8 rounded-2xl shadow-2xl border border-zinc-800">
+            <div className="flex flex-col items-center gap-4 bg-slate-50 dark:bg-zinc-950 p-8 rounded-2xl shadow-2xl border border-slate-200 dark:border-zinc-800">
               <UploadCloud className="w-12 h-12 text-emerald-500 animate-bounce" />
               <div className="text-center">
-                <h3 className="text-lg font-bold text-white tracking-widest uppercase pb-1">Drop files to upload</h3>
-                <p className="text-xs text-zinc-500 font-mono">Supports any documents or images</p>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-widest uppercase pb-1">Drop files to upload</h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-500 font-mono">Supports any documents or images</p>
               </div>
             </div>
           </motion.div>
@@ -919,16 +919,16 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col w-[800px] h-[600px] max-w-full max-h-full"
+              className="bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col w-[800px] h-[600px] max-w-full max-h-full"
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/50 cursor-default">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 cursor-default">
                 <div className="flex items-center gap-2">
-                  <span className="text-zinc-200 font-bold text-sm">部署数据库 (Deployment Data Pool)</span>
-                  <span className="text-[10px] font-mono text-zinc-500 bg-zinc-800 px-2 rounded">EXP. LAYER</span>
+                  <span className="text-slate-800 dark:text-zinc-200 font-bold text-sm">部署数据库 (Deployment Data Pool)</span>
+                  <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-800 px-2 rounded">EXP. LAYER</span>
                 </div>
                 <button 
                   onClick={() => setShowExplorer(false)}
-                  className="p-1 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                  className="p-1 hover:bg-slate-100 dark:bg-zinc-800 rounded-lg transition-colors text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:text-white"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -936,14 +936,14 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
 
               <div className="flex flex-1 min-h-0">
                 {/* Left pane: Directories */}
-                <div className="w-48 border-r border-zinc-800 bg-zinc-900/20 p-2 overflow-y-auto space-y-1">
-                  <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest pl-2 mb-2 pt-2">Directories</div>
+                <div className="w-48 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/20 p-2 overflow-y-auto space-y-1">
+                  <div className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest pl-2 mb-2 pt-2">Directories</div>
                   {Array.from(new Set(virtualFiles.map(f => f.directory).concat(['/', '/agent_records']))).map(dir => (
                     <button
                       key={dir}
                       onClick={() => { setCurrentDir(dir); setExplorerContextMenu(null); }}
                       className={`w-full text-left px-2 py-1.5 text-[11px] font-mono rounded flex items-center gap-2 transition-colors ${
-                        currentDir === dir ? 'bg-emerald-500/10 text-emerald-500 font-bold border border-emerald-500/30' : 'text-zinc-400 hover:bg-zinc-800 border border-transparent'
+                        currentDir === dir ? 'bg-emerald-500/10 text-emerald-500 font-bold border border-emerald-500/30' : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:bg-zinc-800 border border-transparent'
                       }`}
                     >
                       <Layers className="w-3.5 h-3.5" />
@@ -954,7 +954,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
 
                 {/* Right pane: Files */}
                 <div className="flex-1 bg-black p-4 overflow-y-auto relative" onContextMenu={(e) => { e.preventDefault(); setExplorerContextMenu(null); }}>
-                  <div className="text-[10px] font-mono text-zinc-500 mb-4 flex items-center gap-2">
+                  <div className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 mb-4 flex items-center gap-2">
                     <span className="text-emerald-500/70">{currentDir}</span> 
                     <span className="text-zinc-700">|</span> 
                     {virtualFiles.filter(f => f.directory === currentDir).length} files
@@ -969,24 +969,24 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                           e.stopPropagation();
                           setExplorerContextMenu({ x: e.clientX, y: e.clientY, fileId: f.id });
                         }}
-                        className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-zinc-900 cursor-pointer border border-transparent hover:border-zinc-800 transition-all select-none relative group"
+                        className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-white dark:bg-zinc-900 cursor-pointer border border-transparent hover:border-slate-200 dark:border-zinc-800 transition-all select-none relative group"
                       >
                         <FileIcon className={`w-8 h-8 ${f.source === 'agent' ? 'text-purple-500' : 'text-emerald-500'}`} />
                         <div className="text-center w-full">
-                          <p className="text-[11px] text-zinc-300 truncate" title={f.name}>{f.name}</p>
+                          <p className="text-[11px] text-slate-700 dark:text-zinc-300 truncate" title={f.name}>{f.name}</p>
                           <div className="flex items-center justify-center gap-1 mt-1">
                             {f.readOnly ? (
-                              <span className="text-[8px] px-1 bg-rose-500/20 text-rose-400 font-mono rounded border border-rose-500/10">R/O</span>
+                              <span className="text-[8px] px-1 bg-rose-600 dark:bg-rose-500/20 text-rose-500 dark:text-rose-400 font-mono rounded border border-rose-500/10">R/O</span>
                             ) : (
                               <span className="text-[8px] px-1 bg-blue-500/20 text-blue-400 font-mono rounded border border-blue-500/10">R/W</span>
                             )}
-                            <span className="text-[8px] text-zinc-600 font-mono">{(f.size / 1024).toFixed(1)}K</span>
+                            <span className="text-[8px] text-slate-400 dark:text-zinc-600 font-mono">{(f.size / 1024).toFixed(1)}K</span>
                           </div>
                         </div>
                       </div>
                     ))}
                     {virtualFiles.filter(f => f.directory === currentDir).length === 0 && (
-                      <div className="col-span-4 text-center py-12 text-zinc-600 text-xs italic font-mono">
+                      <div className="col-span-4 text-center py-12 text-slate-400 dark:text-zinc-600 text-xs italic font-mono">
                         Directory is empty
                       </div>
                     )}
@@ -1003,24 +1003,24 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.1 }}
-                  className="fixed z-[70] bg-zinc-900 border border-zinc-700 rounded shadow-xl min-w-[160px] overflow-hidden"
+                  className="fixed z-[70] bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded shadow-xl min-w-[160px] overflow-hidden"
                   style={{ top: explorerContextMenu.y, left: explorerContextMenu.x }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="px-3 py-1.5 border-b border-zinc-800 bg-black/20 text-[9px] text-zinc-500 font-mono uppercase tracking-widest">
+                  <div className="px-3 py-1.5 border-b border-slate-200 dark:border-zinc-800 bg-black/20 text-[9px] text-slate-500 dark:text-zinc-500 font-mono uppercase tracking-widest">
                     Properties
                   </div>
                   <button 
-                    className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 hover:text-white transition-colors flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-xs text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:bg-zinc-800 hover:text-slate-900 dark:text-white transition-colors flex items-center gap-2"
                     onClick={() => {
                       setVirtualFiles(prev => prev.map(vf => vf.id === explorerContextMenu.fileId ? { ...vf, readOnly: true } : vf));
                       setExplorerContextMenu(null);
                     }}
                   >
-                    <span className="w-2 h-2 rounded-full bg-rose-500 flex-none" /> Set Read-Only
+                    <span className="w-2 h-2 rounded-full bg-rose-600 dark:bg-rose-500 flex-none" /> Set Read-Only
                   </button>
                   <button 
-                    className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 hover:text-white transition-colors flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-xs text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:bg-zinc-800 hover:text-slate-900 dark:text-white transition-colors flex items-center gap-2"
                     onClick={() => {
                       setVirtualFiles(prev => prev.map(vf => vf.id === explorerContextMenu.fileId ? { ...vf, readOnly: false } : vf));
                       setExplorerContextMenu(null);
@@ -1028,9 +1028,9 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                   >
                     <span className="w-2 h-2 rounded-full bg-blue-500 flex-none" /> Set Read / Write
                   </button>
-                  <div className="border-t border-zinc-800 mt-1" />
+                  <div className="border-t border-slate-200 dark:border-zinc-800 mt-1" />
                   <button 
-                    className="w-full text-left px-3 py-2 text-xs text-rose-400 hover:bg-rose-500 hover:text-white transition-colors font-bold flex items-center justify-between"
+                    className="w-full text-left px-3 py-2 text-xs text-rose-500 dark:text-rose-400 hover:bg-rose-600 dark:bg-rose-500 hover:text-slate-900 dark:text-white transition-colors font-bold flex items-center justify-between"
                     onClick={() => {
                       setVirtualFiles(prev => prev.filter(vf => vf.id !== explorerContextMenu.fileId));
                       setExplorerContextMenu(null);
@@ -1058,33 +1058,33 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+              className="w-full max-w-2xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
             >
-              <div className="flex items-center justify-between p-4 border-b border-zinc-800 bg-zinc-900/50 flex-shrink-0">
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <SettingsIcon className="w-4 h-4 text-emerald-500" />
-                  <h2 className="text-sm font-bold text-white uppercase tracking-wider">{t.settings}</h2>
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">{t.settings}</h2>
                 </div>
-                <button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-white transition-colors">
+                <button onClick={() => setShowSettings(false)} className="text-slate-500 dark:text-zinc-500 hover:text-slate-900 dark:text-white transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Tabs Navigation */}
-              <div className="flex border-b border-zinc-800 bg-zinc-900/20 px-2 flex-shrink-0">
-                <button onClick={() => setActiveTab('general')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'general' ? 'border-emerald-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+              <div className="flex border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/20 px-2 flex-shrink-0">
+                <button onClick={() => setActiveTab('general')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'general' ? 'border-emerald-500 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:text-zinc-300'}`}>
                   {t.tabGeneral}
                 </button>
-                <button onClick={() => setActiveTab('models')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'models' ? 'border-emerald-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+                <button onClick={() => setActiveTab('models')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'models' ? 'border-emerald-500 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:text-zinc-300'}`}>
                   {t.tabModels}
                 </button>
-                <button onClick={() => setActiveTab('prompts')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'prompts' ? 'border-emerald-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+                <button onClick={() => setActiveTab('prompts')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'prompts' ? 'border-emerald-500 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:text-zinc-300'}`}>
                   {t.tabPrompts}
                 </button>
-                <button onClick={() => setActiveTab('init')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'init' ? 'border-emerald-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+                <button onClick={() => setActiveTab('init')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'init' ? 'border-emerald-500 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:text-zinc-300'}`}>
                   {t.tabInit}
                 </button>
-                <button onClick={() => setActiveTab('help')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'help' ? 'border-emerald-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+                <button onClick={() => setActiveTab('help')} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'help' ? 'border-emerald-500 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:text-zinc-300'}`}>
                   {t.tabHelp}
                 </button>
               </div>
@@ -1093,7 +1093,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                 {activeTab === 'general' && (
                   <div className="space-y-6 animate-in fade-in duration-300">
                     <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                      <label className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">
                         <Globe className="w-3 h-3" /> {t.language}
                       </label>
                       <div className="grid grid-cols-2 gap-2">
@@ -1104,7 +1104,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                             className={`py-2 px-4 rounded-lg border text-xs font-medium transition-all ${
                               settings.lang === l 
                                 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500' 
-                                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                                : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:border-zinc-700'
                             }`}
                           >
                             {l === 'zh' ? '中文 (简体)' : 'English (US)'}
@@ -1119,8 +1119,8 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                   <div className="space-y-6 animate-in fade-in duration-300">
                     
                     {/* Agent Target Selector */}
-                    <div className="space-y-3 pb-4 border-b border-zinc-800">
-                      <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                    <div className="space-y-3 pb-4 border-b border-slate-200 dark:border-zinc-800">
+                      <label className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">
                         <UserIcon className="w-3 h-3" /> {settings.lang === 'zh' ? '目标智能体 (配置独立模型)' : 'Target Agent (Independent Config)'}
                       </label>
                       <div className="grid grid-cols-5 gap-2">
@@ -1134,7 +1134,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                             className={`py-2 px-2 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all truncate ${
                               settingsActiveAgent === agent 
                                 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500' 
-                                : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                                : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-500 hover:border-slate-300 dark:border-zinc-700'
                             }`}
                           >
                             {agent}
@@ -1146,7 +1146,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                     <div className="flex gap-4">
                       {/* Provider Select */}
                       <div className="flex-1 space-y-3">
-                        <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                        <label className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">
                           <Network className="w-3 h-3" /> {settings.lang === 'zh' ? '核心服务商' : 'Provider'}</label><select 
                           value={activeAgentConfig.selectedProvider}
                           onChange={(e) => {
@@ -1165,7 +1165,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                             }));
                             setTestConnectionState({ status: 'idle', message: '' });
                           }}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 appearance-none transition-colors"
+                          className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 appearance-none transition-colors"
                         >
                           {ALL_PROVIDERS.map(p => (
                             <option key={p.id} value={p.id}>{p.name}</option>
@@ -1175,7 +1175,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
 
                       {/* Model Select */}
                       <div className="flex-1 space-y-3">
-                        <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                        <label className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">
                           <Box className="w-3 h-3" /> {t.model}
                         </label>
                         <select 
@@ -1193,7 +1193,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                             }));
                             setTestConnectionState({ status: 'idle', message: '' });
                           }}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 appearance-none transition-colors"
+                          className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 appearance-none transition-colors"
                         >
                           {currentProviderData.models.map(m => (
                             <option key={m.id} value={m.id} disabled={m.id === 'no_models_yet'}>{m.name}</option>
@@ -1222,7 +1222,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                                 }
                               }))}
                               placeholder={settings.lang === 'zh' ? "输入模型名称 (如: gpt-4.5)" : "Enter model string"}
-                              className="w-full bg-zinc-900 border border-emerald-500/50 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors"
+                              className="w-full bg-white dark:bg-zinc-900 border border-emerald-500/50 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors"
                             />
                           )}
                         </AnimatePresence>
@@ -1230,7 +1230,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                     </div>
 
                     <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                      <label className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">
                         <Key className="w-3 h-3" /> {t.apiKey}
                       </label>
                       <div className="relative">
@@ -1248,12 +1248,12 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                             }
                           }))}
                           placeholder={`sk-... (${currentProviderData.name} API Key)`}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 pr-10 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors placeholder:text-zinc-700"
+                          className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 pr-10 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors placeholder:text-zinc-700"
                         />
                         <button
                           type="button"
                           onClick={() => setShowApiKey(!showApiKey)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 opacity-60 hover:opacity-100 transition-opacity"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:text-zinc-300 opacity-60 hover:opacity-100 transition-opacity"
                         >
                           {showApiKey ? "👁️" : "👁️‍🗨️"}
                         </button>
@@ -1261,7 +1261,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                     </div>
 
                     <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                      <label className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">
                         <Network className="w-3 h-3" /> {t.apiEndpoint}
                       </label>
                       <input 
@@ -1279,10 +1279,10 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                           }
                         }))}
                         placeholder={currentProviderData.defaultEndpoint}
-                        className={`w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors ${activeAgentConfig.selectedProvider === 'user_custom_models' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors ${activeAgentConfig.selectedProvider === 'user_custom_models' ? 'opacity-50 cursor-not-allowed' : ''}`}
                       />
                       {activeAgentConfig.selectedProvider !== 'user_custom_models' && (
-                        <p className="text-[9px] text-zinc-600 italic">
+                        <p className="text-[9px] text-slate-400 dark:text-zinc-600 italic">
                           * {settings.lang === 'zh' ? '每个大模型平台隔离保存接口地址与 Key。跨智能体共用同一平台配额。' : 'Keys and endpoints are isolated per provider. Shared across agents using the same provider.'}
                         </p>
                       )}
@@ -1294,14 +1294,14 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                       </div>
                     )}
 
-                    <div className="pt-2 border-t border-zinc-800/50">
+                    <div className="pt-2 border-t border-slate-200 dark:border-zinc-800/50">
                       <div className="flex items-center gap-4">
                         <button 
                           onClick={handleTestConnection}
                           disabled={testConnectionState.status === 'testing'}
                           className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
-                            testConnectionState.status === 'testing' ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' :
-                            'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white border border-zinc-700'
+                            testConnectionState.status === 'testing' ? 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-500 cursor-not-allowed' :
+                            'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:bg-zinc-700 hover:text-slate-900 dark:text-white border border-slate-300 dark:border-zinc-700'
                           }`}
                         >
                           <Activity className="w-3.5 h-3.5" />
@@ -1316,7 +1316,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                         )}
                         
                         {testConnectionState.status === 'error' && (
-                           <div className="flex items-center gap-2 text-rose-500 text-xs font-mono bg-rose-500/10 px-3 py-2 rounded flex-1 overflow-hidden">
+                           <div className="flex items-center gap-2 text-rose-600 dark:text-rose-500 text-xs font-mono bg-rose-600 dark:bg-rose-500/10 px-3 py-2 rounded flex-1 overflow-hidden">
                              <AlertCircle className="w-3.5 h-3.5 shrink-0" /> 
                              <span className="truncate" title={testConnectionState.message}>{testConnectionState.message}</span>
                            </div>
@@ -1327,14 +1327,14 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                 )}
 
                 {activeTab === 'models' && (
-                  <div className="mt-8 pt-8 border-t border-zinc-800 border-dashed animate-in fade-in duration-500 space-y-4">
+                  <div className="mt-8 pt-8 border-t border-slate-200 dark:border-zinc-800 border-dashed animate-in fade-in duration-500 space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-zinc-200 text-sm font-bold flex items-center gap-2">
+                        <h3 className="text-slate-800 dark:text-zinc-200 text-sm font-bold flex items-center gap-2">
                           <Cpu className="w-4 h-4 text-emerald-500" />
                           {settings.lang === 'zh' ? '自定义模型管理 (Custom Model Library)' : 'Custom Model Library'}
                         </h3>
-                        <p className="text-xs text-zinc-500 mt-1">
+                        <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">
                           {settings.lang === 'zh' 
                             ? '添加支持 OpenAI API 标准格式的各种本地/私有/第三方大模型。添加后可在任何 Agent 的【⭐ 用户自定义模型】分类中直接选用。' 
                             : 'Manage custom AI models supporting OpenAI chat-completion format. Models will be available across all agents.'}
@@ -1356,7 +1356,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
 
                     <div className="space-y-4">
                       {settings.customModels.map((cm, idx) => (
-                        <div key={cm.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4 relative group">
+                        <div key={cm.id} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 relative group">
                           <div className="absolute right-4 top-4 hidden group-hover:flex items-center gap-2">
                              <button
                                onClick={() => {
@@ -1365,7 +1365,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                                    customModels: s.customModels.filter(m => m.id !== cm.id)
                                  }));
                                }}
-                               className="p-1.5 text-zinc-600 hover:bg-rose-500/10 hover:text-rose-500 rounded transition-all"
+                               className="p-1.5 text-slate-400 dark:text-zinc-600 hover:bg-rose-600 dark:bg-rose-500/10 hover:text-rose-600 dark:text-rose-500 rounded transition-all"
                                title="Delete model"
                              >
                                <Trash2 className="w-3.5 h-3.5" />
@@ -1374,7 +1374,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                           
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-mono text-zinc-500 uppercase">1. {settings.lang === 'zh' ? '显示名称' : 'Alias / Display Name'}</label>
+                              <label className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase">1. {settings.lang === 'zh' ? '显示名称' : 'Alias / Display Name'}</label>
                               <input 
                                 value={cm.name}
                                 onChange={(e) => {
@@ -1384,11 +1384,11 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                                   }));
                                 }}
                                 placeholder="Local Llama3 8B"
-                                className="w-full bg-black border border-zinc-800 rounded p-2 text-xs text-zinc-300 focus:border-emerald-500/50"
+                                className="w-full bg-black border border-slate-200 dark:border-zinc-800 rounded p-2 text-xs text-slate-700 dark:text-zinc-300 focus:border-emerald-500/50"
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-mono text-zinc-500 uppercase">2. {settings.lang === 'zh' ? '真实模型ID' : 'Backend Model String'}</label>
+                              <label className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase">2. {settings.lang === 'zh' ? '真实模型ID' : 'Backend Model String'}</label>
                               <input 
                                 value={cm.modelString}
                                 onChange={(e) => {
@@ -1398,11 +1398,11 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                                   }));
                                 }}
                                 placeholder="llama3-8b-instruct"
-                                className="w-full bg-black border border-zinc-800 rounded p-2 text-xs text-zinc-300 focus:border-emerald-500/50"
+                                className="w-full bg-black border border-slate-200 dark:border-zinc-800 rounded p-2 text-xs text-slate-700 dark:text-zinc-300 focus:border-emerald-500/50"
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-mono text-zinc-500 uppercase">3. API Endpoint</label>
+                              <label className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase">3. API Endpoint</label>
                               <input 
                                 value={cm.apiEndpoint}
                                 onChange={(e) => {
@@ -1412,11 +1412,11 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                                   }));
                                 }}
                                 placeholder="Base URL of OpenAI-compatible API"
-                                className="w-full bg-black border border-zinc-800 rounded p-2 text-xs text-zinc-300 focus:border-emerald-500/50"
+                                className="w-full bg-black border border-slate-200 dark:border-zinc-800 rounded p-2 text-xs text-slate-700 dark:text-zinc-300 focus:border-emerald-500/50"
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-mono text-zinc-500 uppercase">4. API Key</label>
+                              <label className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase">4. API Key</label>
                               <input 
                                 type="password"
                                 value={cm.apiKey}
@@ -1427,14 +1427,14 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                                   }));
                                 }}
                                 placeholder="sk-..."
-                                className="w-full bg-black border border-zinc-800 rounded p-2 text-xs text-zinc-300 focus:border-emerald-500/50"
+                                className="w-full bg-black border border-slate-200 dark:border-zinc-800 rounded p-2 text-xs text-slate-700 dark:text-zinc-300 focus:border-emerald-500/50"
                               />
                             </div>
                           </div>
                         </div>
                       ))}
                       {settings.customModels.length === 0 && (
-                        <div className="text-center py-8 text-zinc-600 text-xs italic border border-zinc-800 border-dashed rounded-lg">
+                        <div className="text-center py-8 text-slate-400 dark:text-zinc-600 text-xs italic border border-slate-200 dark:border-zinc-800 border-dashed rounded-lg">
                           {settings.lang === 'zh' ? '暂无自定义模型。点击右上角添加。' : 'No custom models added yet. Click New Config above.'}
                         </div>
                       )}
@@ -1454,7 +1454,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                         { id: 'recorder', label: settings.lang === 'zh' ? '经验记录员' : 'Data Recorder' }
                       ] as const).map(p => (
                         <div key={p.id} className="space-y-2">
-                          <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">{p.label}</label>
+                          <label className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-wider">{p.label}</label>
                           <textarea 
                             value={settings.prompts[p.id]}
                             onChange={(e) => setSettings(s => ({ 
@@ -1462,7 +1462,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                               prompts: { ...s.prompts, [p.id]: e.target.value }
                             }))}
                             placeholder={t.placeholderPrompt}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-[11px] text-zinc-300 focus:outline-none focus:border-emerald-500/50 transition-colors h-32 resize-none"
+                            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-[11px] text-slate-700 dark:text-zinc-300 focus:outline-none focus:border-emerald-500/50 transition-colors h-32 resize-none"
                           />
                         </div>
                       ))}
@@ -1473,7 +1473,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                 {activeTab === 'init' && (
                   <div className="space-y-6 animate-in fade-in duration-300">
                     <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                      <label className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">
                         <Box className="w-3 h-3" /> {t.projectNameField}
                       </label>
                       <input 
@@ -1484,12 +1484,12 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                           initSettings: { ...s.initSettings, projectName: e.target.value } 
                         }))}
                         placeholder="e.g. smart_contract_v1"
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                        className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors"
                       />
                     </div>
 
                     <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                      <label className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">
                         <Terminal className="w-3 h-3" /> {t.targetPath}
                       </label>
                       <input 
@@ -1499,11 +1499,11 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                           ...s, 
                           initSettings: { ...s.initSettings, targetPath: e.target.value } 
                         }))}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                        className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-colors"
                       />
                     </div>
 
-                    <div className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg">
                       <div className="relative">
                         <input 
                           type="checkbox"
@@ -1512,15 +1512,15 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                             ...s, 
                             initSettings: { ...s.initSettings, autoDeploy: e.target.checked }
                           }))}
-                          className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
+                          className="w-4 h-4 rounded border-slate-300 dark:border-zinc-700 bg-slate-100 dark:bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
                         />
                       </div>
-                      <span className="text-xs text-zinc-300">{t.autoDeploy}</span>
+                      <span className="text-xs text-slate-700 dark:text-zinc-300">{t.autoDeploy}</span>
                     </div>
 
                     <button 
                       onClick={handleInitProject}
-                      className="w-full py-4 bg-emerald-500 text-black font-bold text-sm rounded-lg hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                      className="w-full py-4 bg-emerald-500 text-black font-bold text-sm rounded-lg shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
                     >
                       <Network className="w-4 h-4" /> {t.initProject}
                     </button>
@@ -1541,19 +1541,19 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                   <div className="space-y-6 animate-in fade-in duration-300">
                     <div className="space-y-4">
                       <section className="space-y-2">
-                        <h3 className="text-xs font-bold text-white flex items-center gap-2">
+                        <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                           <Network className="w-3 h-3 text-emerald-500" /> {t.docDagTitle}
                         </h3>
-                        <p className="text-[11px] text-zinc-400 leading-relaxed bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">
+                        <p className="text-[11px] text-slate-600 dark:text-zinc-400 leading-relaxed bg-white dark:bg-zinc-900/50 p-3 rounded-lg border border-slate-200 dark:border-zinc-800">
                           {t.docDagDesc}
                         </p>
                       </section>
 
                       <section className="space-y-2">
-                        <h3 className="text-xs font-bold text-white flex items-center gap-2">
+                        <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                           <RotateCcw className="w-3 h-3 text-emerald-500" /> {t.docSnapshotTitle}
                         </h3>
-                        <p className="text-[11px] text-zinc-400 leading-relaxed bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">
+                        <p className="text-[11px] text-slate-600 dark:text-zinc-400 leading-relaxed bg-white dark:bg-zinc-900/50 p-3 rounded-lg border border-slate-200 dark:border-zinc-800">
                           {t.docSnapshotDesc}
                         </p>
                       </section>
@@ -1562,7 +1562,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                         <h3 className="text-xs font-bold text-emerald-500 flex items-center gap-2">
                           <ShieldCheck className="w-3 h-3" /> {t.docSettingsTitle}
                         </h3>
-                        <div className="space-y-2 font-mono text-[10px] text-zinc-400 bg-zinc-950 p-4 rounded-lg border border-emerald-500/10">
+                        <div className="space-y-2 font-mono text-[10px] text-slate-600 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-950 p-4 rounded-lg border border-emerald-500/10">
                           <p>{t.docStep1}</p>
                           <p>{t.docStep2}</p>
                           <p>{t.docStep3}</p>
@@ -1574,10 +1574,10 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                 )}
               </div>
 
-              <div className="p-4 bg-zinc-900/50 border-t border-zinc-800 flex justify-end gap-2 flex-shrink-0">
+              <div className="p-4 bg-white dark:bg-zinc-900/50 border-t border-slate-200 dark:border-zinc-800 flex justify-end gap-2 flex-shrink-0">
                 <button 
                   onClick={() => setShowSettings(false)}
-                  className="px-6 py-2 bg-emerald-500 text-black font-bold text-xs rounded-lg hover:bg-emerald-400 transition-all cursor-pointer"
+                  className="px-6 py-2 bg-emerald-500 text-black font-bold text-xs rounded-lg shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] hover:bg-emerald-400 transition-all cursor-pointer"
                 >
                   {t.save}
                 </button>
@@ -1588,16 +1588,16 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
       </AnimatePresence>
 
       {/* --- Left Sidebar: Status & Controls --- */}
-      <aside className="w-64 border-r border-zinc-800 flex flex-col p-4 gap-6 bg-zinc-950/50" id="sidebar-left">
+      <aside className="w-64 border-r border-slate-200 dark:border-zinc-800 flex flex-col p-4 gap-6 bg-slate-50 dark:bg-zinc-950/50" id="sidebar-left">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2" id="brand-header">
             <div className="w-8 h-8 bg-zinc-100 rounded flex items-center justify-center">
               <Cpu className="text-black w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-tight text-white line-clamp-1">{t.projectName}</h1>
+              <h1 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white line-clamp-1">{t.projectName}</h1>
               <div className="flex items-center gap-1.5 min-w-0">
-                 <p className="text-[10px] text-zinc-500 font-mono italic shrink-0">v0.2_STABLE</p>
+                 <p className="text-[10px] text-slate-500 dark:text-zinc-500 font-mono italic shrink-0">v0.2_STABLE</p>
                  {state.source_code_path && (
                    <>
                      <span className="text-zinc-700 font-mono text-[9px] shrink-0">|</span>
@@ -1612,7 +1612,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
           <div className="flex items-center gap-1">
             <button 
               onClick={() => setShowSettings(true)}
-              className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-900 rounded-lg transition-all"
+              className="p-2 text-slate-500 dark:text-zinc-500 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-zinc-900 rounded-lg transition-all"
               title={t.settings}
             >
               <SettingsIcon className="w-4 h-4" />
@@ -1621,22 +1621,22 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
         </div>
 
         {/* API Status Section */}
-        <div className="p-3 bg-zinc-900/40 border border-zinc-800 rounded-lg space-y-3">
+        <div className="p-3 bg-white dark:bg-zinc-900/40 border border-slate-200 dark:border-zinc-800 rounded-lg space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Key className={`w-3.5 h-3.5 ${isApiConnected ? 'text-emerald-500' : 'text-zinc-600'}`} />
-              <span className="text-[11px] font-bold text-white uppercase tracking-tight">{t.apiKeyStatus}</span>
+              <Key className={`w-3.5 h-3.5 ${isApiConnected ? 'text-emerald-500' : 'text-slate-400 dark:text-zinc-600'}`} />
+              <span className="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-tight">{t.apiKeyStatus}</span>
             </div>
-            <div className={`w-2.5 h-2.5 rounded-full ${isApiConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'}`} />
+            <div className={`w-2.5 h-2.5 rounded-full ${isApiConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-600 dark:bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'}`} />
           </div>
-          <p className={`text-[10px] font-mono ${isApiConnected ? 'text-emerald-500/70' : 'text-rose-500/70'}`}>
+          <p className={`text-[10px] font-mono ${isApiConnected ? 'text-emerald-500/70' : 'text-rose-600 dark:text-rose-500/70'}`}>
             {isApiConnected ? `[CONNECTED] ${settings.selectedModel}` : `[DISCONNECTED]`}
           </p>
         </div>
 
         <div className="space-y-4" id="agent-status-cluster">
           <div className="grid grid-cols-1 gap-2">
-            <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] mb-1">{t.agentCluster}</h2>
+            <h2 className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-[0.2em] mb-1">{t.agentCluster}</h2>
             <AgentStatusCard label="Master" status="ready" t={t} active={activeAgent === 'master'} onClick={() => setActiveAgent('master')} />
             <AgentStatusCard label={t.creativeDirector} status={canExecute ? 'working' : 'idle'} t={t} active={activeAgent === 'creative'} onClick={() => setActiveAgent('creative')} />
             <AgentStatusCard label="Design" status={canExecute ? 'ready' : 'idle'} t={t} active={activeAgent === 'design'} onClick={() => setActiveAgent('design')} />
@@ -1644,13 +1644,13 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
             <AgentStatusCard label="Reflect" status="idle" t={t} active={activeAgent === 'reflect'} onClick={() => setActiveAgent('reflect')} />
           </div>
 
-          <div className="space-y-2 pt-4 border-t border-zinc-800" id="system-metrics">
-            <h2 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] mb-1">{t.metrics}</h2>
+          <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-zinc-800" id="system-metrics">
+            <h2 className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-[0.2em] mb-1">{t.metrics}</h2>
             <div className="flex justify-between text-[10px] font-mono">
-              <span className="text-zinc-500">{t.iterations}</span>
-              <span className="text-zinc-200">{state.global_iteration_count}/3</span>
+              <span className="text-slate-500 dark:text-zinc-500">{t.iterations}</span>
+              <span className="text-slate-800 dark:text-zinc-200">{state.global_iteration_count}/3</span>
             </div>
-            <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+            <div className="w-full bg-slate-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
               <div 
                 className="bg-emerald-500 h-full transition-all duration-500" 
                 style={{ width: `${state.global_iteration_count > 0 ? (state.global_iteration_count / 3) * 100 : 0}%` }}
@@ -1663,7 +1663,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
           <button id="btn-execute-dag" className="w-full py-2 bg-white text-black text-xs font-bold rounded flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors cursor-pointer disabled:opacity-50" disabled={!canExecute}>
             <Play className="w-3 h-3 fill-current" /> {t.executeDag}
           </button>
-          <button id="btn-rollback" className="w-full py-2 border border-zinc-800 text-zinc-400 text-xs font-bold rounded flex items-center justify-center gap-2 hover:bg-zinc-900 transition-colors cursor-pointer disabled:opacity-50" disabled={!canExecute}>
+          <button id="btn-rollback" className="w-full py-2 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 text-xs font-bold rounded flex items-center justify-center gap-2 hover:bg-white dark:bg-zinc-900 transition-colors cursor-pointer disabled:opacity-50" disabled={!canExecute}>
             <RotateCcw className="w-3 h-3" /> {t.rollback}
           </button>
         </div>
@@ -1671,11 +1671,11 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
 
       {/* --- Middle Content: Execution Flow --- */}
       <main className="flex-1 flex flex-col min-w-0" id="main-execution-flow">
-        <header className="h-14 border-b border-zinc-800 flex items-center justify-between px-6 bg-zinc-950/20" id="main-header">
+        <header className="h-14 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-6 bg-slate-50 dark:bg-zinc-950/20" id="main-header">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-xs">
               <Terminal className="w-3 h-3 text-emerald-500" />
-              <span className="font-mono text-zinc-500">{t.snapshot}:</span>
+              <span className="font-mono text-slate-500 dark:text-zinc-500">{t.snapshot}:</span>
               <span className="font-mono text-zinc-100">{state.last_stable_snapshot}</span>
             </div>
           </div>
@@ -1694,26 +1694,26 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
             <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in slide-in-from-bottom-2 duration-500`}>
               <div className={`w-8 h-8 rounded-full border flex items-center justify-center flex-shrink-0 ${
                 msg.role === 'user' 
-                  ? 'border-zinc-700 bg-zinc-900 shadow-inner' 
+                  ? 'border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-inner' 
                   : msg.role === 'agent' 
                     ? 'border-emerald-500/30 bg-emerald-500/5' 
-                    : 'border-zinc-800 bg-zinc-950'
+                    : 'border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950'
               }`}>
-                {msg.role === 'user' ? <UserIcon className="w-4 h-4 text-zinc-400" /> : <Activity className="w-4 h-4 text-emerald-500" />}
+                {msg.role === 'user' ? <UserIcon className="w-4 h-4 text-slate-600 dark:text-zinc-400" /> : <Activity className="w-4 h-4 text-emerald-500" />}
               </div>
               <div className={`flex-1 space-y-1.5 max-w-[80%] ${msg.role === 'user' ? 'text-right' : ''}`}>
                 <div className={`flex items-center gap-2 text-[10px] ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                  <span className="font-bold text-zinc-500 uppercase tracking-wider">
+                  <span className="font-bold text-slate-500 dark:text-zinc-500 uppercase tracking-wider">
                     {msg.role === 'user' ? 'Human' : msg.role === 'agent' ? `Agent_${activeAgent.toUpperCase()}` : 'System'}
                   </span>
                   <span className="text-zinc-700 font-mono tracking-tighter">{msg.timestamp}</span>
                 </div>
                 <div className={`p-3 rounded-xl text-xs leading-relaxed border ${
                   msg.role === 'user' 
-                    ? 'bg-zinc-900/80 border-zinc-700 text-zinc-200 rounded-tr-none' 
+                    ? 'bg-white dark:bg-zinc-900/80 border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 rounded-tr-none' 
                     : msg.role === 'agent'
                       ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-50/90 rounded-tl-none'
-                      : 'bg-zinc-950/20 border-zinc-800 text-zinc-500 border-dashed rounded-tl-none italic'
+                      : 'bg-slate-50 dark:bg-zinc-950/20 border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-500 border-dashed rounded-tl-none italic'
                 }`}>
                   {msg.content}
                 </div>
@@ -1722,20 +1722,20 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
           ))}
         </section>
 
-        <footer className="p-4 border-t border-zinc-800 bg-zinc-950" id="input-footer">
+        <footer className="p-4 border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950" id="input-footer">
           <div className="max-w-4xl mx-auto space-y-4">
             {uploadedFiles.length > 0 && (
               <div className="flex flex-wrap gap-2 animate-in slide-in-from-bottom-2 duration-300">
                 {uploadedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg group">
+                  <div key={index} className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg group">
                     <FileIcon className="w-3.5 h-3.5 text-emerald-500" />
                     <div className="min-w-0">
-                      <p className="text-[10px] text-white truncate max-w-[120px]">{file.name}</p>
-                      <p className="text-[8px] text-zinc-500 font-mono">{(file.size / 1024).toFixed(1)} KB</p>
+                      <p className="text-[10px] text-slate-900 dark:text-white truncate max-w-[120px]">{file.name}</p>
+                      <p className="text-[8px] text-slate-500 dark:text-zinc-500 font-mono">{(file.size / 1024).toFixed(1)} KB</p>
                     </div>
                     <button 
                       onClick={() => removeFile(index)}
-                      className="p-1 text-zinc-600 hover:text-rose-500 rounded transition-colors"
+                      className="p-1 text-slate-400 dark:text-zinc-600 hover:text-rose-600 dark:text-rose-500 rounded transition-colors"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -1752,7 +1752,7 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder={canExecute ? t.inputPlaceholder : t.noMemory}
                   disabled={!canExecute}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm focus:outline-none focus:border-emerald-500/50 resize-none h-24 text-zinc-200 disabled:opacity-50 transition-all"
+                  className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg p-3 text-sm focus:outline-none focus:border-emerald-500/50 resize-none h-24 text-slate-800 dark:text-zinc-200 disabled:opacity-50 transition-all"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -1764,8 +1764,8 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                 <div className="flex items-center gap-2">
                   <label className={`flex items-center gap-2 px-3 py-1.5 rounded-md border text-[10px] font-bold transition-all cursor-pointer ${
                     canExecute 
-                      ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white' 
-                      : 'bg-zinc-900/50 border-zinc-800/50 text-zinc-600 cursor-not-allowed opacity-50'
+                      ? 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:bg-zinc-800 hover:text-slate-900 dark:text-white' 
+                      : 'bg-white dark:bg-zinc-900/50 border-slate-200 dark:border-zinc-800/50 text-slate-400 dark:text-zinc-600 cursor-not-allowed opacity-50'
                   }`}>
                     <Paperclip className="w-3 h-3" />
                     {t.uploadFile}
@@ -1784,15 +1784,15 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                     disabled={!canExecute}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-[10px] font-bold transition-all ${
                       canExecute 
-                        ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white' 
-                        : 'bg-zinc-900/50 border-zinc-800/50 text-zinc-600 cursor-not-allowed opacity-50'
+                        ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-slate-900 dark:text-white' 
+                        : 'bg-white dark:bg-zinc-900/50 border-slate-200 dark:border-zinc-800/50 text-slate-400 dark:text-zinc-600 cursor-not-allowed opacity-50'
                     }`}
                   >
                     <Layers className="w-3 h-3" />
                     经验池+1
                   </button>
 
-                  <span className="text-[9px] text-zinc-600 font-mono ml-2 border-l border-zinc-800 pl-4">
+                  <span className="text-[9px] text-slate-400 dark:text-zinc-600 font-mono ml-2 border-l border-slate-200 dark:border-zinc-800 pl-4">
                     {settings.lang === 'zh' ? '支持 md, json, pdf, txt, png' : 'Supports md, json, pdf, txt, png'}
                   </span>
                 </div>
@@ -1812,10 +1812,10 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
       </main>
 
       {/* --- Right Sidebar: Task DAG & Details --- */}
-      <aside className="w-80 border-l border-zinc-800 flex flex-col bg-zinc-950/50" id="sidebar-right">
-        <div className="p-4 border-b border-zinc-800" id="dag-header">
-          <h2 className="text-xs font-bold text-white flex items-center gap-2">
-            <Network className="w-4 h-4 text-zinc-400" /> DYNAMIC DAG
+      <aside className="w-80 border-l border-slate-200 dark:border-zinc-800 flex flex-col bg-slate-50 dark:bg-zinc-950/50" id="sidebar-right">
+        <div className="p-4 border-b border-slate-200 dark:border-zinc-800" id="dag-header">
+          <h2 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Network className="w-4 h-4 text-slate-600 dark:text-zinc-400" /> DYNAMIC DAG
           </h2>
         </div>
         
@@ -1831,24 +1831,24 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                 task.status === 'running' 
                   ? 'bg-emerald-500/5 border-emerald-500/30' 
                   : task.status === 'completed'
-                    ? 'bg-zinc-900/20 border-emerald-500/10 opacity-80'
-                    : 'bg-zinc-900/50 border-zinc-800'
+                    ? 'bg-white dark:bg-zinc-900/20 border-emerald-500/10 opacity-80'
+                    : 'bg-white dark:bg-zinc-900/50 border-slate-200 dark:border-zinc-800'
               }`}
             >
               <div className="flex justify-between items-start w-full">
                 <div className="flex items-center gap-2">
                   <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
-                    task.status === 'running' ? 'bg-emerald-500 text-black' : 'bg-zinc-800 text-zinc-400'
+                    task.status === 'running' ? 'bg-emerald-500 text-black' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'
                   }`}>{task.id}</span>
                   {task.is_critical && (
                     <AlertCircle className="w-3 h-3 text-emerald-500" />
                   )}
                 </div>
                 <span className={`text-[10px] font-mono ${
-                  task.status === 'running' ? 'text-emerald-500' : 'text-zinc-600'
+                  task.status === 'running' ? 'text-emerald-500' : 'text-slate-400 dark:text-zinc-600'
                 } uppercase tracking-tighter`}>{task.status}</span>
               </div>
-              <p className="text-[11px] font-medium text-zinc-200">{task.description}</p>
+              <p className="text-[11px] font-medium text-slate-800 dark:text-zinc-200">{task.description}</p>
               
               <AnimatePresence>
                 {selectedTaskId === task.id && (
@@ -1856,12 +1856,12 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden space-y-3 pt-2 border-t border-zinc-800/50 mt-1"
+                    className="overflow-hidden space-y-3 pt-2 border-t border-slate-200 dark:border-zinc-800/50 mt-1"
                   >
                     {task.id === 'T3' ? (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">Workspace Explorer</span>
+                          <span className="text-[9px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">Workspace Explorer</span>
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1874,22 +1874,22 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                         </div>
                         <div className="grid grid-cols-1 gap-1.5">
                           {virtualFiles.length > 0 ? virtualFiles.slice(0, 3).map((file, i) => (
-                            <div key={i} className="flex items-center gap-2 p-2 bg-black/20 rounded border border-zinc-800/50 group">
+                            <div key={i} className="flex items-center gap-2 p-2 bg-black/20 rounded border border-slate-200 dark:border-zinc-800/50 group">
                               <FileText className="w-3 h-3 text-blue-400" />
                               <div className="flex-1 min-w-0 flex items-center justify-between">
-                                <p className="text-[10px] text-zinc-300 truncate">{file.name}</p>
-                                <span className={`text-[8px] px-1 rounded ${file.readOnly ? 'bg-rose-500/20 text-rose-500' : 'bg-blue-500/20 text-blue-400'}`}>
+                                <p className="text-[10px] text-slate-700 dark:text-zinc-300 truncate">{file.name}</p>
+                                <span className={`text-[8px] px-1 rounded ${file.readOnly ? 'bg-rose-600 dark:bg-rose-500/20 text-rose-600 dark:text-rose-500' : 'bg-blue-500/20 text-blue-400'}`}>
                                   {file.readOnly ? 'R/O' : 'R/W'}
                                 </span>
                               </div>
                             </div>
                           )) : (
-                            <div className="p-4 text-center border border-dashed border-zinc-800 rounded bg-zinc-900/10">
-                              <p className="text-[9px] text-zinc-600 italic">No files available in data pool.</p>
+                            <div className="p-4 text-center border border-dashed border-slate-200 dark:border-zinc-800 rounded bg-white dark:bg-zinc-900/10">
+                              <p className="text-[9px] text-slate-400 dark:text-zinc-600 italic">No files available in data pool.</p>
                             </div>
                           )}
                           {virtualFiles.length > 3 && (
-                            <div className="text-center text-[9px] text-zinc-500 font-mono">
+                            <div className="text-center text-[9px] text-slate-500 dark:text-zinc-500 font-mono">
                               + {virtualFiles.length - 3} more files...
                             </div>
                           )}
@@ -1900,11 +1900,11 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-black/20 p-2 rounded border border-zinc-800/50 space-y-2">
-                        <p className="text-[10px] text-zinc-400 leading-relaxed italic">
+                      <div className="bg-black/20 p-2 rounded border border-slate-200 dark:border-zinc-800/50 space-y-2">
+                        <p className="text-[10px] text-slate-600 dark:text-zinc-400 leading-relaxed italic">
                           Task context isolated. Executing dependency chain analysis...
                         </p>
-                        <div className="flex items-center gap-2 text-[9px] font-mono text-zinc-600">
+                        <div className="flex items-center gap-2 text-[9px] font-mono text-slate-400 dark:text-zinc-600">
                            <div className="w-1 h-1 bg-emerald-500 rounded-full" />
                            Ready for bridge verification.
                         </div>
@@ -1916,17 +1916,17 @@ Merge this seamlessly into 'EXISTING EXPERIENCE' and return ONLY the completely 
 
               {task.parallel_group && (
                 <div className="mt-1 flex items-center gap-1.5">
-                  <Layers className="w-3 h-3 text-zinc-600" />
-                  <span className="text-[10px] font-mono text-zinc-500">{task.parallel_group}</span>
+                  <Layers className="w-3 h-3 text-slate-400 dark:text-zinc-600" />
+                  <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-500">{task.parallel_group}</span>
                 </div>
               )}
             </motion.button>
           ))}
         </div>
 
-        <div className="p-4 border-t border-zinc-800 space-y-3" id="active-report">
-          <h3 className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{t.activeReport}</h3>
-          <div className="bg-black/40 border border-zinc-800 rounded p-3 font-mono text-[10px] text-emerald-500/80 max-h-32 overflow-y-auto" id="report-terminal">
+        <div className="p-4 border-t border-slate-200 dark:border-zinc-800 space-y-3" id="active-report">
+          <h3 className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase tracking-widest">{t.activeReport}</h3>
+          <div className="bg-black/40 border border-slate-200 dark:border-zinc-800 rounded p-3 font-mono text-[10px] text-emerald-500/80 max-h-32 overflow-y-auto" id="report-terminal">
             {canExecute ? "Persistence Layer: Connected (" + settings.selectedModel + ")" : "Persistence Layer: Disconnected"}
           </div>
         </div>
